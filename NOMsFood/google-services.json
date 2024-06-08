@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "309828446819",
+    "project_id": "nomsfoodmobile",
+    "storage_bucket": "nomsfoodmobile.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:309828446819:android:327041dbee241940e8a656",
+        "android_client_info": {
+          "package_name": "com.NOMs.NOMsFood"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLDzBwWv2usijRHZvCP6nJYqfZ-UGi8Uk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
