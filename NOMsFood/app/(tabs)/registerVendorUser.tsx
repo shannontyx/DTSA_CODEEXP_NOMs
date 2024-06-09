@@ -21,9 +21,10 @@ interface userProfile {
   username: string;
   contact: string;
   password: string;
-  role: string;
+  type: string;
   storeId: string;
-  uid: string;
+  userId: string;
+  status: string;
 }
 
 const registerVendorUser: React.FC = () => {
@@ -63,9 +64,10 @@ const registerVendorUser: React.FC = () => {
           username: ProfileData.username,
           contact: ProfileData.contact,
           password: ProfileData.password,
-          role: "vendor",
+          type: "vendor",
           storeId: "",
-          uid: uid,
+          userId: uid,
+          status: "Active",
         };
         await addDoc(userCollectionRef, profilePayload);
       }

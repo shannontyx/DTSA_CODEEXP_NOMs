@@ -1,22 +1,104 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { doSignInWithEmailAndPassword, doSignOut } from '../../firebase/auth'
+import { FirebaseError } from '@firebase/util';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../components/authContext'
+import { getAuth } from 'firebase/auth';
+import { db } from '../../firebase/firebaseConfig';
 import { Button } from 'react-native-paper';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [isSigningIn, setIsSigningIn] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [userType, setUserType] = useState('')
+  const [signInDone, setSignInDone] = useState(false)
 
-  const handleLogin = () => {
-    // Perform login logic here
+  const handleLogin = async () => {
     console.log('Username:', email);
     console.log('Password:', password);
+
+    if (!isSigningIn) {
+      try {
+        setIsSigningIn(true);
+        await doSignInWithEmailAndPassword(email, password);
+        await fetchUserData();
+        completeLogin();
+      } catch (error: any) {
+        console.log("triggered")
+        doSignOut();
+        setUserType("");
+        if (error.message === "Firebase: Error (auth/invalid-credential).") {
+          setErrorMessage("Invalid Login Credentials");
+        } else if (error.message === "Firebase: Error (auth/invalid-email).") {
+          setErrorMessage("Invalid Email");
+        } else if (error.message === "Firebase: Error (auth/missing-password).") {
+          setErrorMessage("Fill In Missing Password");
+        } else {
+          setErrorMessage(error.message);
+        }
+      } finally {
+        setIsSigningIn(false); // Reset Button
+      }
+    }
+  };
+
+  const fetchUserData = async () => {
+    const auth = getAuth(); // Get Current User State
+    const userIden = auth.currentUser?.uid; // UserId 
+    try {
+      const usersCollectionRef = collection(db, "Users");
+      console.log('Current User:', userIden);
+
+      const q = query(usersCollectionRef, where("userId", "==", userIden));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+
+        querySnapshot.forEach((doc) => {
+          const userData = doc.data();
+          const type = userData.type;
+          setUserType(type);
+          console.log(userData.status);
+          console.log(userData.type);
+          if (userData.status === 'Banned') {
+            console.log("Ban Triggered");
+            throw new Error("Your account has been banned");
+          } else if (userData.status === 'Deleted') {
+            throw new Error("This account has been deleted");
+          }
+        });
+      } else {
+        throw new Error("No Account Found");
+      }
+    } catch (error: any) {
+      if (error.message === "Your account has been banned") {
+        throw new Error("Your account has been banned");
+      } else if (error.message === "This account has been deleted") {
+        throw new Error("This account has been deleted");
+      } else if (error.message === "No Account Found") {
+        throw new Error("No Account has Been Found");
+      } else {
+        throw new Error("Error While Retrieving Account");
+      }
+    }
+  };
+
+  const completeLogin = () => {
+    if (userType === "Vendor") {
+      navigation.navigate('vendorHomepage', { replace: true });
+    } else if (userType === "Customer") {
+      navigation.navigate('homepage', { replace: true });
+    }
   };
 
   const handleBackPress = () => {
-    navigation.goBack(); 
+    navigation.goBack();
   };
 
   return (
@@ -51,6 +133,10 @@ const LoginScreen = () => {
       >
         Login
       </Button>
+
+      {errorMessage && (
+        <Text style={{ color: 'red', fontWeight: 'bold' }}>{errorMessage}</Text>
+      )}
     </View>
   );
 };
