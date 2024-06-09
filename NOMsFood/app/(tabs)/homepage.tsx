@@ -67,6 +67,12 @@ const HomeScreen = () => {
         <TouchableOpacity onPress={() => navigation.navigate('Western')}>
           <Text>Western Stores</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('CartScreen')}>
+          <Text>Cart Screen</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('CheckoutScreen')}>
+          <Text>Checkout Cart Screen</Text>
+        </TouchableOpacity>
       </View>
       {/* <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>Order Again</Text>

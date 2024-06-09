@@ -9,7 +9,7 @@ const CartScreen = () => {
       name: 'DIY Bowl',
       price: 3.00,
       quantity: 2,
-      image: require('../../assets/images/eggtopia.png') , // Update the path to your image
+      image: require('../assets/images/eggtopia.png') , // Update the path to your image
     },
   ];
   

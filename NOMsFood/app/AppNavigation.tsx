@@ -5,7 +5,11 @@ import LoginScreen from './(tabs)/loginScreen';
 import HomeScreen from './(tabs)/homepage';
 import AllStores from './AllStores';
 import Western from './Western';
-import CartScreen from './(tabs)/CartScreen'; // Import the CartScreen
+import CartScreen from './CartScreen'; // Import the CartScreen
+import CheckoutScreen from './CheckoutScreen';
+import CreateStore from './CreateStore';
+import ManageStore from './ManageStore';
+import ViewStore from './(tabs)/ViewStore';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,7 +21,11 @@ const AppNavigator = () => {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="AllStores" component={AllStores} />
         <Stack.Screen name="Western" component={Western} />
-        <Stack.Screen name="Cart" component={CartScreen} /> {/* Add Cart screen */}
+        <Stack.Screen name="CartScreen" component={CartScreen} />
+        <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
+        <Stack.Screen name="CreateStore" component={CreateStore} />
+        <Stack.Screen name="ManageStore" component={ManageStore} />
+        <Stack.Screen name="ViewStore" component={ViewStore} />
       </Stack.Navigator>
     </NavigationContainer>
   );
