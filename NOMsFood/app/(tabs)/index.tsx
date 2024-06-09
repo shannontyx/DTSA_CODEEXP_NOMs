@@ -4,9 +4,26 @@ import { Image, StyleSheet, Platform, useColorScheme } from 'react-native';
 //import { ThemedText } from '@/components/ThemedText';
 //import { ThemedView } from '@/components/ThemedView';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'light';
+  const navigation = useNavigation();
+
+  const navigateLogin = () => {
+    navigation.navigate('loginScreen');
+    console.log('Login');
+  };
+
+  const navigateVendorSignup = () => {
+    navigation.navigate('registerVendorUser');
+    console.log('new Vendor');
+  };
+
+  const navigateCustSignUp = () => {
+    navigation.navigate('registerCustomerUser');
+    console.log('new Customer');
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: '#FFFFFF' }]}>
@@ -18,19 +35,19 @@ export default function HomeScreen() {
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
           style={[styles.button,]}
-          onPress={() => console.log('Login')}>
+          onPress={navigateLogin}>
           <Text style={[styles.buttonText]}>Login</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button]}
-          onPress={() => console.log('Sign in')}>
-          <Text style={[styles.buttonText]}>Sign in</Text>
+          onPress={navigateVendorSignup}>
+          <Text style={[styles.buttonText]}>Vendor Registration</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button]}
-          onPress={() => console.log('Forgot password')}>
+          onPress={navigateCustSignUp}>
           <Text style={[styles.buttonText]}>
-            Forgot password
+            Customer Registration
           </Text>
         </TouchableOpacity>
       </View>
@@ -47,7 +64,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 120,
     height: 120,
-    marginBottom: 20,
   },
   title: {
     fontSize: 24,
