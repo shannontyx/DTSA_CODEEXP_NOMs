@@ -5,6 +5,7 @@ import LoginScreen from './(tabs)/loginScreen';
 import HomeScreen from './(tabs)/homepage';
 import AllStores from './AllStores';
 import Western from './Western';
+import CartScreen from './(tabs)/CartScreen'; // Import the CartScreen
 
 const Stack = createNativeStackNavigator();
 
@@ -15,7 +16,8 @@ const AppNavigator = () => {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="AllStores" component={AllStores} />
-        <Stack.Screen name="Western" component={Western} />      
+        <Stack.Screen name="Western" component={Western} />
+        <Stack.Screen name="Cart" component={CartScreen} /> {/* Add Cart screen */}
       </Stack.Navigator>
     </NavigationContainer>
   );
