@@ -100,7 +100,7 @@ const registerVendorUser: React.FC = () => {
         console.log(userLoggedIn);
         if (userLoggedIn && !registering) {
           console.log("navigate to create store");
-          navigation.navigate('CreateStore');
+          navigation.navigate('CreateStore', { replace: true });
         }
       } catch (error) {
         console.error('Error handling user profile:', error);
