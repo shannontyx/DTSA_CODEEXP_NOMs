@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
-
+import { useAuth } from '../../components/authContext'
+import { getAuth } from 'firebase/auth';
 const HomeScreen = () => {
   const navigation = useNavigation();
   const categories = [

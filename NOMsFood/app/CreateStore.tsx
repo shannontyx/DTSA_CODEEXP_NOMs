@@ -56,7 +56,7 @@ function CreateStore() {
   const handleSubmit = async () => {
 
     try {
-      const storeCollectionRef = collection(db, "Store");
+      const storeCollectionRef = collection(db, "Stores");
       console.log(currentUserId);
       console.log(store.name);
       console.log(store.location);
@@ -201,4 +201,4 @@ return (
    },
  });
 
-// export default CreateStore;
+export default CreateStore;

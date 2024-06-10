@@ -19,6 +19,10 @@ const LoginScreen = () => {
   const [userType, setUserType] = useState('')
   const [signInDone, setSignInDone] = useState(false)
 
+  const { userLoggedIn = false } = useAuth() ?? {};
+  const auth = getAuth();
+
+
   const handleLogin = async () => {
     console.log('Username:', email);
     console.log('Password:', password);
@@ -27,8 +31,7 @@ const LoginScreen = () => {
       try {
         setIsSigningIn(true);
         await doSignInWithEmailAndPassword(email, password);
-        await fetchUserData();
-        completeLogin();
+        await Promise.all([fetchUserData()]);
       } catch (error: any) {
         console.log("triggered")
         doSignOut();
@@ -48,6 +51,13 @@ const LoginScreen = () => {
     }
   };
 
+  useEffect(() => {
+    if (userType) {
+      console.log('User Type:', userType);
+      completeLogin();
+    }
+  }, [userType]);
+
   const fetchUserData = async () => {
     const auth = getAuth(); // Get Current User State
     const userIden = auth.currentUser?.uid; // UserId 
@@ -62,16 +72,19 @@ const LoginScreen = () => {
 
         querySnapshot.forEach((doc) => {
           const userData = doc.data();
-          const type = userData.type;
-          setUserType(type);
+
           console.log(userData.status);
-          console.log(userData.type);
+
           if (userData.status === 'Banned') {
             console.log("Ban Triggered");
             throw new Error("Your account has been banned");
           } else if (userData.status === 'Deleted') {
             throw new Error("This account has been deleted");
           }
+
+          setUserType(userData.type);
+          console.log(userType);
+
         });
       } else {
         throw new Error("No Account Found");
@@ -90,6 +103,7 @@ const LoginScreen = () => {
   };
 
   const completeLogin = () => {
+    console.log("navigating");
     if (userType === "Vendor") {
       navigation.navigate('vendorHomepage', { replace: true });
     } else if (userType === "Customer") {

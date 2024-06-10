@@ -32,7 +32,8 @@ const registerVendorUser: React.FC = () => {
   const navigation = useNavigation();
   const [registering, setRegistering] = useState(false);
 
-  const { userLoggedIn } = useAuth()
+  const authContext = useAuth();
+  const userLoggedIn = authContext ? authContext.userLoggedIn : false;
   const auth = getAuth();
 
   const [profile, setProfile] = useState<Profile>({
@@ -78,7 +79,7 @@ const registerVendorUser: React.FC = () => {
       }
       console.log('User profile added to database!');
       alert('You have successfully created this user!');
-      setProfile({ email: '', name: '', username: '', contact: '', password: '', confirmPassword: '' }); // Reset profile
+      //setProfile({ email: '', name: '', username: '', contact: '', password: '', confirmPassword: '' }); // Reset profile
     } catch (error) {
       console.error('Error adding user', error);
       throw error;
@@ -95,7 +96,10 @@ const registerVendorUser: React.FC = () => {
       try {
         await handleNewUser(profile);
         setRegistering(false);
+        
+        console.log(userLoggedIn);
         if (userLoggedIn && !registering) {
+          console.log("navigate to create store");
           navigation.navigate('CreateStore');
         }
       } catch (error) {
@@ -144,12 +148,14 @@ const registerVendorUser: React.FC = () => {
           style={styles.input}
           placeholder="Password"
           value={profile.password}
+          secureTextEntry
           onChangeText={value => handleInputChange('password', value)}
         />
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"
           value={profile.confirmPassword}
+          secureTextEntry
           onChangeText={value => handleInputChange('confirmPassword', value)}
         />
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
