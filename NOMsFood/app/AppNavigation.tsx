@@ -10,13 +10,29 @@ import CheckoutScreen from './CheckoutScreen';
 import CreateStore from './CreateStore';
 import ManageStore from './ManageStore';
 import ViewStore from './(tabs)/ViewStore';
+import BottomFoot from './BottomFoot';
+import Error from './Error';
 
-const Stack = createNativeStackNavigator();
+type RootStackParamList = {
+  Home: undefined;
+  Error: undefined; // Add Error route to the stack param list
+  Login: undefined;
+  AllStores: undefined;
+  Western: undefined;
+  CartScreen: undefined;
+  CheckoutScreen: undefined;
+  CreateStore:undefined;
+  ManageStore: undefined;
+  ViewStore: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Error" component={Error} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="AllStores" component={AllStores} />
@@ -27,6 +43,7 @@ const AppNavigator = () => {
         <Stack.Screen name="ManageStore" component={ManageStore} />
         <Stack.Screen name="ViewStore" component={ViewStore} />
       </Stack.Navigator>
+      <BottomFoot />
     </NavigationContainer>
   );
 };
