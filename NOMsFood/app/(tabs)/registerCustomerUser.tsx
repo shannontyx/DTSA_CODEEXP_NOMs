@@ -21,8 +21,9 @@ interface userProfile {
   username: string;
   contact: string;
   password: string;
-  role: string;
-  uid: string;
+  type: string;
+  userId: string;
+  status: string;
 }
 
 const registerCustomerUser: React.FC = () => {
@@ -62,8 +63,9 @@ const registerCustomerUser: React.FC = () => {
           username: ProfileData.username,
           contact: ProfileData.contact,
           password: ProfileData.password,
-          role: "customer",
-          uid: uid,
+          type: "Customer",
+          userId: uid,
+          status: "Active",
         };
         await addDoc(userCollectionRef, profilePayload);
       }
