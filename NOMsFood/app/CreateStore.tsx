@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 //import { LoadScript, useLoadScript, Autocomplete, GoogleMap, Marker } from '@react-google-maps/api';
 import { useAuth } from '../components/authContext';
 import { useNavigation } from '@react-navigation/native';
-import { collection, addDoc, getFirestore, query, where, getDocs, updateDoc } from "firebase/firestore";
+import { db } from '../firebase/firebaseConfig';
+import { collection, addDoc, query, where, getDocs, updateDoc } from "firebase/firestore";
+import { ScrollView, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 
 
 function CreateStore() {
@@ -28,15 +30,14 @@ function CreateStore() {
   const [marker, setMarker] = useState({ lat: null, lng: null });
   const [isApiLoaded, setIsApiLoaded] = useState(false);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setStore({
-      ...store,
+  const handleInputChange = (name: string, value: string) => {
+    setStore(prevStore => ({
+      ...prevStore,
       [name]: value,
-    });
+    }));
   };
 
-  const handlePlaceSelect = () => {
+  /*const handlePlaceSelect = () => {
     const address = autocomplete.getPlace();
     setStore({
       ...store,
@@ -44,18 +45,15 @@ function CreateStore() {
       locationString: address.formatted_address,
     });
     setMarker({ lat: address.geometry.location.lat(), lng: address.geometry.location.lng() });
-  };
+  };*/
 
-  const onLoad = (autoC) => setAutocomplete(autoC);
+  /*const onLoad = (autoC) => setAutocomplete(autoC);
 
   useEffect(()=> {
     localStorage.setItem('isMapsApiLoaded', true);
-  }, [])
+  }, [])*/
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const db = getFirestore();
+  const handleSubmit = async () => {
 
     try {
       const storeCollectionRef = collection(db, "Store");
@@ -69,7 +67,7 @@ function CreateStore() {
       console.log(currentUserEmail);
       const storeDocRef = await addDoc(storeCollectionRef, {
         ...store,
-        location: marker,
+        //location: marker,
       });
 
       const usersCollectionRef = collection(db, "Users");
@@ -88,7 +86,7 @@ function CreateStore() {
 
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
-        navigate('/home'); // Navigate to home after successful store creation
+        navigate.navigate('VendorHomepage'); // Navigate to home after successful store creation
       } else {
         console.log("User not found.");
       }
@@ -98,7 +96,7 @@ function CreateStore() {
     }
   };
 
-  const libraries = ["places"];
+  /*const libraries = ["places"];
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: "AIzaSyAPomcsuwYqpr_xLpQPAfZOFI3AxxuldJs",
     libraries,
@@ -111,7 +109,7 @@ function CreateStore() {
     backgroundRepeat: 'no-repeat',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-  };
+  };*/
 
 return (
 <ScrollView contentContainerStyle={styles.container}>
@@ -152,12 +150,6 @@ return (
          placeholder="Store Address"
          value={store.location}
          onChangeText={(value) => handleInputChange('location', value)}
-       />
-       <TextInput
-         style={styles.input}
-         placeholder="Store Contact Number"
-         value={store.storeContactNumber}
-         onChangeText={(value) => handleInputChange('storeContactNumber', value)}
        />
        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
          <Text style={styles.buttonText}>Create Store</Text>

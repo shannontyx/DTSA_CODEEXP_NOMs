@@ -4,7 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import { db } from '../../firebase/firebaseConfig';
 import { doCreateUserWithEmailAndPassword } from '../../firebase/auth'
 import { collection, addDoc } from "firebase/firestore";
-
+import { useAuth } from '../../components/authContext'
+import { getAuth } from 'firebase/auth';
 
 interface Profile {
   email: string;
@@ -29,6 +30,10 @@ interface userProfile {
 
 const registerVendorUser: React.FC = () => {
   const navigation = useNavigation();
+  const [registering, setRegistering] = useState(false);
+
+  const { userLoggedIn } = useAuth()
+  const auth = getAuth();
 
   const [profile, setProfile] = useState<Profile>({
     email: '',
@@ -81,12 +86,18 @@ const registerVendorUser: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if(!registering) {
+      setRegistering(true);
+    }
     console.log(profile.password);
     console.log(profile.confirmPassword);
     if (profile.password === profile.confirmPassword) {
       try {
         await handleNewUser(profile);
-        navigation.navigate('loginScreen');
+        setRegistering(false);
+        if (userLoggedIn && !registering) {
+          navigation.navigate('CreateStore');
+        }
       } catch (error) {
         console.error('Error handling user profile:', error);
       }
