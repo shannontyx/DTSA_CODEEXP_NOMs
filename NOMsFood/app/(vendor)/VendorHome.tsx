@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 
-const VendorHomepage = () => {
+const VendorHome = () => {
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
@@ -132,4 +132,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VendorHomepage;
+export default VendorHome;

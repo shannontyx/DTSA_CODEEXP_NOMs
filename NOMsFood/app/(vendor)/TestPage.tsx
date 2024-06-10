@@ -1,15 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
 
-const VendorHomepage = () => {
-  const navigation = useNavigation();
+const TestPage = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image source={require('../../assets/images/noms2.png')} style={styles.logo} />
-        <Icon name="user" size={24} color="#000" style={styles.userIcon} />
+
       </View>
       <Text style={styles.greeting}>Good Day VendorName,</Text>
       <Text style={styles.subGreeting}>What would you like to do today?</Text>
@@ -18,8 +15,7 @@ const VendorHomepage = () => {
           <Icon name="home" size={40} color="#6B8E23" />
           <Text style={styles.buttonText}>Manage Store</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}
-        onPress={() => navigation.navigate('TestPage')}>
+        <TouchableOpacity style={styles.button}>
           <Icon name="cutlery" size={40} color="#6B8E23" />
           <Text style={styles.buttonText}>Manage Listing</Text>
         </TouchableOpacity>
@@ -32,18 +28,7 @@ const VendorHomepage = () => {
           <Text style={styles.buttonText}>View Orders</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.greenSection}>
-        <Image source={require('../../assets/images/gogreen.jpg')} style={styles.greenImage} />
-        <View style={styles.greenTextContainer}>
-          <Text style={styles.greenTitle}>Go GREEN</Text>
-          <Text style={styles.greenSubtitle}>
-            Join the Go Green Initiative with other 123 Vendors! Do your part to STOP Global Warming!
-          </Text>
-          <TouchableOpacity style={styles.upgradeButton}>
-            <Text style={styles.upgradeButtonText}>Upgrade your store</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      
     </View>
   );
 };
@@ -132,4 +117,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VendorHomepage;
+export default TestPage;
