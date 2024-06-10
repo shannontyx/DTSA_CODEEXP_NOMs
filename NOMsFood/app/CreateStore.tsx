@@ -117,15 +117,15 @@ return (
        <Text style={styles.subtitle}>Set-up your store right now!</Text>
        <TextInput
          style={styles.input}
-         placeholder="Description"
-         value={store.description}
-         onChangeText={(value) => handleInputChange('description', value)}
-       />
-       <TextInput
-         style={styles.input}
          placeholder="Store Name"
          value={store.name}
          onChangeText={(value) => handleInputChange('name', value)}
+       />
+       <TextInput
+         style={styles.input}
+         placeholder="Description"
+         value={store.description}
+         onChangeText={(value) => handleInputChange('description', value)}
        />
        <TextInput
          style={styles.input}

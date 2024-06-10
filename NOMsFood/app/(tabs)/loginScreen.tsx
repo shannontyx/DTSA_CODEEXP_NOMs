@@ -105,7 +105,7 @@ const LoginScreen = () => {
   const completeLogin = () => {
     console.log("navigating");
     if (userType === "Vendor") {
-      navigation.navigate('vendorHomepage', { replace: true });
+      navigation.navigate('VendorHomepage', { replace: true });
     } else if (userType === "Customer") {
       navigation.navigate('homepage', { replace: true });
     }

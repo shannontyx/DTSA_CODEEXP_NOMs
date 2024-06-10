@@ -1,13 +1,21 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useNavigation } from '@react-navigation/native';
 
 const VendorHomepage = () => {
+
+  const navigation = useNavigation();
+
+  const handleIconPress = () => {
+    navigation.navigate('Profile');
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Image source={require('../../assets/images/noms2.png')} style={styles.logo} />
-        <Icon name="user" size={24} color="#000" style={styles.userIcon} />
+        <Icon name="user" size={24} color="#000" style={styles.userIcon} onPress={handleIconPress}/>
       </View>
       <Text style={styles.greeting}>Good Day VendorName,</Text>
       <Text style={styles.subGreeting}>What would you like to do today?</Text>
@@ -20,7 +28,7 @@ const VendorHomepage = () => {
           <Icon name="cutlery" size={40} color="#6B8E23" />
           <Text style={styles.buttonText}>Manage Listing</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('viewReviews')}>
           <Icon name="star" size={40} color="#6B8E23" />
           <Text style={styles.buttonText}>View Reviews</Text>
         </TouchableOpacity>

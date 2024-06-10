@@ -70,7 +70,7 @@ const registerVendorUser: React.FC = () => {
           username: ProfileData.username,
           contact: ProfileData.contact,
           password: ProfileData.password,
-          type: "vendor",
+          type: "Vendor",
           storeId: "",
           userId: uid,
           status: "Active",
