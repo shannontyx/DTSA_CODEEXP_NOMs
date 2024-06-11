@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
 import { db } from '../firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRoute } from '@react-navigation/native';
+import { FontAwesome } from '@expo/vector-icons';
+
+const { height } = Dimensions.get('window');
 
 interface Store {
   storeId: string;
@@ -48,13 +51,27 @@ const StoreDetailsPage: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Image source={require('./../assets/images/storeDisplay.png')} style={styles.storeImage} />
-      <Text style={styles.header}>{store.name}</Text>
-      <Text style={styles.details}>Location: {store.location}</Text>
-      <Text style={styles.details}>Opening Hours: {store.opening} - {store.closing}</Text>
-      <Text style={styles.details}>Description: {store.description}</Text>
-      <Text style={styles.details}>Contact: {store.contact}</Text>
-      <Text style={styles.details}>Email: {store.email}</Text>
+      <View style={styles.card}>
+        <View style={styles.storeHeader}>
+          <Image source={require('./../assets/images/storeDisplay.png')} style={styles.storeImage} />
+          <Text style={styles.header}>{store.name}</Text>
+        </View>
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailRow}>
+            <FontAwesome name="clock-o" size={24} color="green" />
+            <Text style={styles.details}>Opening: {store.opening} - Closing: {store.closing}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <FontAwesome name="map-marker" size={24} color="green" />
+            <Text style={styles.details}>{store.location}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <FontAwesome name="star" size={24} color="green" />
+            <Text style={styles.details}>Best Chicken Rice in Town</Text>
+          </View>
+          <Text style={styles.promotionText}>Bring your own container for $1 Discount!</Text>
+        </View>
+      </View>
     </ScrollView>
   );
 };
@@ -63,23 +80,53 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
     padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    height: height * 0.33,
+    width: '100%',
+    alignSelf: 'center',
+    marginTop: 0,
+  },
+  storeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
   },
   storeImage: {
-    width: '100%',
-    height: 200,
-    resizeMode: 'cover',
-    marginBottom: 20,
+    width: 80,
+    height: 80,
+    marginRight: 10,
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+  },
+  detailsContainer: {
+    paddingHorizontal: 10,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   details: {
     fontSize: 18,
-    marginBottom: 10,
-  }
+    marginLeft: 10,
+  },
+  promotionText: {
+    fontSize: 16,
+    color: 'green',
+    marginTop: 10,
+    textAlign: 'left',
+  },
 });
 
 export default StoreDetailsPage;
