@@ -1,129 +1,163 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Modal, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/firebaseConfig';
+import { getAuth } from 'firebase/auth';
+
+interface Listing {
+    id: string;
+    userId: string;
+    storeId: string
+    price: number;
+    quantity: number;
+    description: string;
+    name: string;
+  }
 
 const ManageListing = () => {
-  const [activeTab, setActiveTab] = useState('In Stock');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [productName, setProductName] = useState('');
-  const [productDescription, setProductDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [quantity, setQuantity] = useState('');
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Manage Listing</Text>
-      </View>
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'In Stock' && styles.activeTab]}
-          onPress={() => setActiveTab('In Stock')}>
-          <Text style={[styles.tabText, activeTab === 'In Stock' && styles.activeTabText]}>In Stock</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'Out Of Stock' && styles.activeTab]}
-          onPress={() => setActiveTab('Out Of Stock')}>
-          <Text style={[styles.tabText, activeTab === 'Out Of Stock' && styles.activeTabText]}>Out Of Stock</Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView>
-        <TouchableOpacity style={styles.listingButton} onPress={() => setModalVisible(true)}>
-          <Text style={styles.listingButtonText}>Create Listing</Text>
-        </TouchableOpacity>
-        {activeTab === 'In Stock' && (
-          <>
-            <View style={styles.listingCard}>
-              <Image source={{ uri: 'https://via.placeholder.com/80' }} style={styles.listingImage} />
-              <View style={styles.listingInfo}>
-                <Text style={styles.listingTitle}>Soup Noodle Set</Text>
-                <Text style={styles.listingDescription}>Description: Description of food</Text>
-                <Text style={styles.listingDetails}>Price: $5</Text>
-                <Text style={styles.listingDetails}>Quantity: 10</Text>
-              </View>
-            </View>
-            <View style={styles.listingCard}>
-              <Image source={{ uri: 'https://via.placeholder.com/80' }} style={styles.listingImage} />
-              <View style={styles.listingInfo}>
-                <Text style={styles.listingTitle}>Rice Set</Text>
-                <Text style={styles.listingDescription}>Description: Description of food</Text>
-                <Text style={styles.listingDetails}>Price: $6</Text>
-                <Text style={styles.listingDetails}>Quantity: 20</Text>
-              </View>
-            </View>
-          </>
-        )}
-      </ScrollView>
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerButton}>
-          <Icon name="group" size={24} color="#2c5f2d" />
-          <Text style={styles.footerButtonText}>Manage Store</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton} onPress={() => setModalVisible(true)}>
-          <Icon name="plus-square" size={24} color="#2c5f2d" />
-          <Text style={styles.footerButtonText}>Create Listing</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton}>
-          <Icon name="star" size={24} color="#2c5f2d" />
-          <Text style={styles.footerButtonText}>View Reviews</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton}>
-          <Icon name="shopping-cart" size={24} color="#2c5f2d" />
-          <Text style={styles.footerButtonText}>View Orders</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-
-            <TouchableOpacity style={styles.uploadButton}>
-              <Text style={styles.uploadButtonText}>Upload Image</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={styles.input}
-              placeholder="Product Name"
-              value={productName}
-              onChangeText={setProductName}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Product Description"
-              value={productDescription}
-              onChangeText={setProductDescription}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Price ($)"
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="numeric"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Quantity"
-              value={quantity}
-              onChangeText={setQuantity}
-              keyboardType="numeric"
-            />
-            <TouchableOpacity style={styles.updateButton}>
-              <Text style={styles.updateButtonText}>Update</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+    const [activeTab, setActiveTab] = useState('In Stock');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [productName, setProductName] = useState('');
+    const [productDescription, setProductDescription] = useState('');
+    const [price, setPrice] = useState('');
+    const [quantity, setQuantity] = useState('');
+    const [listings, setListings] = useState<Listing[]>([]);
+    const auth = getAuth();
+    const userId = auth.currentUser?.uid || ''; // Replace with the actual current user ID
+  
+    useEffect(() => {
+      const fetchListings = async () => {
+        // const auth = getAuth();
+        // const activeUser = auth.currentUser;
+        console.log(userId);
+        const q = query(collection(db, 'Listing'), where('userId', '==', userId));
+        const querySnapshot = await getDocs(q);
+        // const fetchedListings: Listing[] = [];
+        // querySnapshot.forEach((doc) => {
+        //   fetchedListings.push({ id: doc.id, ...doc.data() });
+        // });
+        // setListings(fetchedListings);
+        const fetchedListings = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          } as Listing));
+          setListings(fetchedListings);
+          console.log(fetchListings.length);
+        // const fetchedListings = querySnapshot.docs.map(doc => doc.data() as Listing);
+        // setListings(fetchedListings);
+      };
+  
+      fetchListings();
+    }, [userId]);
+  
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Manage Listing</Text>
         </View>
-      </Modal>
-    </View>
-  );
-};
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'In Stock' && styles.activeTab]}
+            onPress={() => setActiveTab('In Stock')}>
+            <Text style={[styles.tabText, activeTab === 'In Stock' && styles.activeTabText]}>In Stock</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'Out Of Stock' && styles.activeTab]}
+            onPress={() => setActiveTab('Out Of Stock')}>
+            <Text style={[styles.tabText, activeTab === 'Out Of Stock' && styles.activeTabText]}>Out Of Stock</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView>
+          <TouchableOpacity style={styles.listingButton} onPress={() => setModalVisible(true)}>
+            <Text style={styles.listingButtonText}>Create Listing</Text>
+          </TouchableOpacity>
+          {activeTab === 'In Stock' && (
+            <>
+              {listings.map((listing) => (
+                <View key={listing.id} style={styles.listingCard}>
+                  <Image source={{ uri: 'https://via.placeholder.com/80' }} style={styles.listingImage} />
+                  <View style={styles.listingInfo}>
+                    <Text style={styles.listingTitle}>{listing.name}</Text>
+                    <Text style={styles.listingDescription}>Description: {listing.description}</Text>
+                    <Text style={styles.listingDetails}>Price: ${listing.price}</Text>
+                    <Text style={styles.listingDetails}>Quantity: {listing.quantity}</Text>
+                  </View>
+                </View>
+              ))}
+            </>
+          )}
+        </ScrollView>
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.footerButton}>
+            <Icon name="group" size={24} color="#2c5f2d" />
+            <Text style={styles.footerButtonText}>Manage Store</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.footerButton} onPress={() => setModalVisible(true)}>
+            <Icon name="plus-square" size={24} color="#2c5f2d" />
+            <Text style={styles.footerButtonText}>Create Listing</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.footerButton}>
+            <Icon name="star" size={24} color="#2c5f2d" />
+            <Text style={styles.footerButtonText}>View Reviews</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.footerButton}>
+            <Icon name="shopping-cart" size={24} color="#2c5f2d" />
+            <Text style={styles.footerButtonText}>View Orders</Text>
+          </TouchableOpacity>
+        </View>
+  
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity style={styles.uploadButton}>
+                <Text style={styles.uploadButtonText}>Upload Image</Text>
+              </TouchableOpacity>
+              <TextInput
+                style={styles.input}
+                placeholder="Product Name"
+                value={productName}
+                onChangeText={setProductName}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Product Description"
+                value={productDescription}
+                onChangeText={setProductDescription}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Price ($)"
+                value={price}
+                onChangeText={setPrice}
+                keyboardType="numeric"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Quantity"
+                value={quantity}
+                onChangeText={setQuantity}
+                keyboardType="numeric"
+              />
+              <TouchableOpacity style={styles.updateButton}>
+                <Text style={styles.updateButtonText}>Update</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    );
+  };
+  
 
 const styles = StyleSheet.create({
   container: {
