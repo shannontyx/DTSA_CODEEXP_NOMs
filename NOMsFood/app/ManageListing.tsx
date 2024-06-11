@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Modal, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 import { getAuth } from 'firebase/auth';
 
@@ -15,7 +15,7 @@ interface Listing {
     name: string;
   }
 
-const ManageListing = () => {
+  const ManageListing = () => {
     const [activeTab, setActiveTab] = useState('In Stock');
     const [modalVisible, setModalVisible] = useState(false);
     const [productName, setProductName] = useState('');
@@ -25,7 +25,8 @@ const ManageListing = () => {
     const [inStockListings, setInStockListings] = useState<Listing[]>([]);
     const [outOfStockListings, setOutOfStockListings] = useState<Listing[]>([]);
     const auth = getAuth();
-    const userId = auth.currentUser?.uid || ''; // Replace with the actual current user ID
+    const userId = auth.currentUser?.uid || '';
+    const [storeId, setStoreId] = useState('');
 
     useEffect(() => {
         const fetchListings = async () => {
@@ -34,6 +35,15 @@ const ManageListing = () => {
                 return;
             }
             console.log('Fetching listings for user:', userId);
+
+            const q2 = query(collection(db, 'Stores'), where('userId', '==', userId));
+            const querySnapshot2 = await getDocs(q2);
+
+            
+
+            querySnapshot2.forEach((doc) => {
+                setStoreId(doc.id)
+            });
 
             const q = query(collection(db, 'Listing'), where('userId', '==', userId));
             const querySnapshot = await getDocs(q);
@@ -58,6 +68,44 @@ const ManageListing = () => {
 
         fetchListings();
     }, [userId]);
+
+    const handleCreateListing = async () => {
+        if (!productName || !productDescription || !price || !quantity) {
+            console.log('Please fill out all fields');
+            return;
+        }
+
+        const newListing: Omit<Listing, 'id'> = {
+            userId,
+            storeId: storeId, 
+            name: productName,
+            description: productDescription,
+            price: parseFloat(price),
+            quantity: parseInt(quantity, 10),
+        };
+
+        try {
+            const docRef = await addDoc(collection(db, 'Listing'), newListing);
+            console.log('Document written with ID: ', docRef.id);
+
+            // Update the local state
+            const updatedListing = { ...newListing, id: docRef.id };
+            if (updatedListing.quantity > 0) {
+                setInStockListings([...inStockListings, updatedListing]);
+            } else {
+                setOutOfStockListings([...outOfStockListings, updatedListing]);
+            }
+
+            // Close the modal
+            setModalVisible(false);
+            setProductName('');
+            setProductDescription('');
+            setPrice('');
+            setQuantity('');
+        } catch (error) {
+            console.error('Error adding document: ', error);
+        }
+    };
 
     const renderListings = (listings: Listing[]) => {
         return listings.map((listing) => (
@@ -153,7 +201,7 @@ const ManageListing = () => {
                             onChangeText={setQuantity}
                             keyboardType="numeric"
                         />
-                        <TouchableOpacity style={styles.updateButton}>
+                        <TouchableOpacity style={styles.updateButton} onPress={handleCreateListing}>
                             <Text style={styles.updateButtonText}>Update</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
