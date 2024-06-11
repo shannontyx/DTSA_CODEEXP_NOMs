@@ -2,19 +2,40 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { db } from '../firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { useRoute } from '@react-navigation/native';
 
-const StoreDetailsPage = ({ route }) => {
-  const { storeId } = route.params;
-  const [store, setStore] = useState(null);
+interface Store {
+  storeId: string;
+  name: string;
+  location: string;
+  opening: string;
+  closing: string;
+  description: string;
+  contact: string;
+  email: string;
+}
+
+const StoreDetailsPage: React.FC = () => {
+  const route = useRoute();
+  const { storeId } = route.params as { storeId: string };
+  const [store, setStore] = useState<Store | null>(null);
 
   useEffect(() => {
     const fetchStoreDetails = async () => {
-      const storeDoc = doc(db, 'Stores', storeId);
-      const storeSnapshot = await getDoc(storeDoc);
-      if (storeSnapshot.exists()) {
-        setStore({ storeId: storeSnapshot.id, ...storeSnapshot.data() });
-      } else {
-        console.log('No such store!');
+      try {
+        const storeDoc = doc(db, 'Stores', storeId);
+        const storeSnapshot = await getDoc(storeDoc);
+        console.log(storeSnapshot.id);
+        
+        if (storeSnapshot.exists()) {
+          const storeData = storeSnapshot.data() as Store;
+          console.log('Store data:', storeData);
+          setStore({ storeId: storeSnapshot.id, ...storeData });
+        } else {
+          console.log('No such store!');
+        }
+      } catch (error) {
+        console.error('Error fetching store details:', error);
       }
     };
 
@@ -41,6 +62,7 @@ const StoreDetailsPage = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F5F5F5',
     padding: 20,
   },
   storeImage: {
