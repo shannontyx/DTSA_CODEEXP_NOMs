@@ -1,33 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const CartScreen = () => {
   const navigation = useNavigation();
-  const cartItems = [
-    {
-      name: 'DIY Bowl',
-      price: 3.00,
-      quantity: 2,
-      image: require('../assets/images/eggtopia.png') , // Update the path to your image
-    },
-  ];
-  
+  const [cartItems, setCartItems] = useState([]);
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const goGreenDiscount = 1.00;
   const total = subtotal - goGreenDiscount;
 
+  useEffect(() => {
+    // Load cart items from storage on component mount
+    const storedCartItems = sessionStorage.getItem('cartItems');
+    if (storedCartItems) {
+      setCartItems(JSON.parse(storedCartItems));
+    }
+  }, []);
+
+  const removeItem = (index) => {
+    // Remove item from cart
+    const updatedCartItems = [...cartItems];
+    updatedCartItems.splice(index, 1);
+    setCartItems(updatedCartItems);
+    sessionStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+  };
+
+  const handleCheckout = () => {
+    // Navigate to checkout screen
+    navigation.navigate('CheckoutScreen');
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Your Cart</Text>
-      <View style={styles.cartItem}>
-        <Image source={cartItems[0].image} style={styles.itemImage} />
-        <View style={styles.itemDetails}>
-          <Text style={styles.itemName}>{cartItems[0].name}</Text>
-          <Text style={styles.itemPrice}>${cartItems[0].price.toFixed(2)}</Text>
+      {cartItems.map((item, index) => (
+        <View key={index} style={styles.cartItem}>
+          <Image source={item.image} style={styles.itemImage} />
+          <View style={styles.itemDetails}>
+            <Text style={styles.itemName}>{item.name}</Text>
+            <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+          </View>
+          <Text style={styles.itemQuantity}>x {item.quantity}</Text>
+          <TouchableOpacity onPress={() => removeItem(index)} style={styles.removeItemButton}>
+            <Text style={styles.removeItemButtonText}>Remove</Text>
+          </TouchableOpacity>
         </View>
-        <Text style={styles.itemQuantity}>x {cartItems[0].quantity}</Text>
-      </View>
+      ))}
       <View style={styles.divider} />
       <View style={styles.summaryContainer}>
         <View style={styles.summaryRow}>
@@ -43,11 +61,13 @@ const CartScreen = () => {
           <Text style={styles.totalText}>${total.toFixed(2)}</Text>
         </View>
       </View>
-
       <TouchableOpacity 
-      style={styles.paymentButton} onPress={() => navigation.navigate('CheckoutScreen')}>
-          <Text style={styles.paymentButtonText}>Checkout Cart Screen</Text>
-        </TouchableOpacity>
+        style={[styles.paymentButton, cartItems.length === 0 && styles.paymentButtonDisabled]} 
+        onPress={handleCheckout}
+        disabled={cartItems.length === 0}
+      >
+        <Text style={styles.paymentButtonText}>Checkout Cart Screen</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -131,6 +151,19 @@ const styles = StyleSheet.create({
   paymentButtonText: {
     color: '#FFF',
     fontSize: 16,
+  },
+  paymentButtonDisabled: {
+    backgroundColor: 'gray',
+  },
+  removeItemButton: {
+    backgroundColor: 'red',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  removeItemButtonText: {
+    color: '#FFF',
+    fontSize: 14,
   },
 });
 
