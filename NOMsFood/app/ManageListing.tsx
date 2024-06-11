@@ -1,23 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Modal, TextInput } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Modal, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 import { getAuth } from 'firebase/auth';
 
 interface Listing {
     id: string;
     userId: string;
-    storeId: string
+    storeId: string;
     price: number;
     quantity: number;
     description: string;
     name: string;
-  }
+}
 
-  const ManageListing = () => {
+const ManageListing = () => {
     const [activeTab, setActiveTab] = useState('In Stock');
     const [modalVisible, setModalVisible] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [currentListing, setCurrentListing] = useState<Listing | null>(null);
     const [productName, setProductName] = useState('');
     const [productDescription, setProductDescription] = useState('');
     const [price, setPrice] = useState('');
@@ -38,11 +40,9 @@ interface Listing {
 
             const q2 = query(collection(db, 'Stores'), where('userId', '==', userId));
             const querySnapshot2 = await getDocs(q2);
-
             
-
             querySnapshot2.forEach((doc) => {
-                setStoreId(doc.id)
+                setStoreId(doc.id);
             });
 
             const q = query(collection(db, 'Listing'), where('userId', '==', userId));
@@ -98,13 +98,86 @@ interface Listing {
 
             // Close the modal
             setModalVisible(false);
-            setProductName('');
-            setProductDescription('');
-            setPrice('');
-            setQuantity('');
+            resetForm();
         } catch (error) {
             console.error('Error adding document: ', error);
         }
+    };
+
+    const handleEditListing = async () => {
+        if (!currentListing) return;
+
+        const updatedListing = {
+            ...currentListing,
+            name: productName,
+            description: productDescription,
+            price: parseFloat(price),
+            quantity: parseInt(quantity, 10),
+        };
+
+        try {
+            const listingDoc = doc(db, 'Listing', currentListing.id);
+            await updateDoc(listingDoc, updatedListing);
+
+            // Update the local state
+            const inStock = updatedListing.quantity > 0;
+            if (inStock) {
+                setInStockListings(prev => prev.map(listing => listing.id === currentListing.id ? updatedListing : listing));
+                setOutOfStockListings(prev => prev.filter(listing => listing.id !== currentListing.id));
+            } else {
+                setOutOfStockListings(prev => prev.map(listing => listing.id === currentListing.id ? updatedListing : listing));
+                setInStockListings(prev => prev.filter(listing => listing.id !== currentListing.id));
+            }
+
+            // Close the modal
+            setModalVisible(false);
+            resetForm();
+        } catch (error) {
+            console.error('Error updating document: ', error);
+        }
+    };
+
+    const handleDeleteListing = async (listingId: string) => {
+        try {
+            await deleteDoc(doc(db, 'Listing', listingId));
+
+            // Update the local state
+            setInStockListings(prev => prev.filter(listing => listing.id !== listingId));
+            setOutOfStockListings(prev => prev.filter(listing => listing.id !== listingId));
+        } catch (error) {
+            console.error('Error deleting document: ', error);
+        }
+    };
+
+    const confirmDeleteListing = (listingId: string) => {
+        Alert.alert(
+            "Delete Listing",
+            "Are you sure you want to delete this listing?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Delete", onPress: () => handleDeleteListing(listingId), style: "destructive" }
+            ],
+            { cancelable: true }
+        );
+    };
+
+    const resetForm = () => {
+        setProductName('');
+        setProductDescription('');
+        setPrice('');
+        setQuantity('');
+        setCurrentListing(null);
+        setEditMode(false);
+    };
+
+    const openEditModal = (listing: Listing) => {
+        setCurrentListing(listing);
+        setProductName(listing.name);
+        setProductDescription(listing.description);
+        setPrice(listing.price.toString());
+        setQuantity(listing.quantity.toString());
+        setEditMode(true);
+        setModalVisible(true);
     };
 
     const renderListings = (listings: Listing[]) => {
@@ -117,6 +190,12 @@ interface Listing {
                     <Text style={styles.listingDetails}>Price: ${listing.price}</Text>
                     <Text style={styles.listingDetails}>Quantity: {listing.quantity}</Text>
                 </View>
+                <TouchableOpacity style={styles.editButton} onPress={() => openEditModal(listing)}>
+                    <Icon name="edit" size={24} color="#2c5f2d" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.deleteButton} onPress={() => confirmDeleteListing(listing.id)}>
+                    <Icon name="trash" size={24} color="red" />
+                </TouchableOpacity>
             </View>
         ));
     };
@@ -201,8 +280,8 @@ interface Listing {
                             onChangeText={setQuantity}
                             keyboardType="numeric"
                         />
-                        <TouchableOpacity style={styles.updateButton} onPress={handleCreateListing}>
-                            <Text style={styles.updateButtonText}>Update</Text>
+                        <TouchableOpacity style={styles.updateButton} onPress={editMode ? handleEditListing : handleCreateListing}>
+                            <Text style={styles.updateButtonText}>{editMode ? 'Save Changes' : 'Create Listing'}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
                             <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -213,8 +292,6 @@ interface Listing {
         </View>
     );
 };
-
-  
 
 const styles = StyleSheet.create({
   container: {
@@ -281,6 +358,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    position: 'relative',
   },
   listingImage: {
     width: 80,
@@ -303,6 +381,16 @@ const styles = StyleSheet.create({
   listingDetails: {
     color: '#333333',
     marginTop: 5,
+  },
+  editButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  deleteButton: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
   },
   footer: {
     height: 60,

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity } from 'react-native';
 import { db } from '../firebase/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { useRoute } from '@react-navigation/native';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 
 interface Store {
   storeId: string;
@@ -18,21 +18,29 @@ interface Store {
   email: string;
 }
 
+interface Listing {
+  description: string;
+  name: string;
+  price: number;
+  quantity: number;
+  storeId: string;
+  userId: string;
+}
+
 const StoreDetailsPage: React.FC = () => {
   const route = useRoute();
   const { storeId } = route.params as { storeId: string };
   const [store, setStore] = useState<Store | null>(null);
+  const [listings, setListings] = useState<Listing[]>([]);
 
   useEffect(() => {
     const fetchStoreDetails = async () => {
       try {
         const storeDoc = doc(db, 'Stores', storeId);
         const storeSnapshot = await getDoc(storeDoc);
-        console.log(storeSnapshot.id);
         
         if (storeSnapshot.exists()) {
           const storeData = storeSnapshot.data() as Store;
-          console.log('Store data:', storeData);
           setStore({ storeId: storeSnapshot.id, ...storeData });
         } else {
           console.log('No such store!');
@@ -42,12 +50,32 @@ const StoreDetailsPage: React.FC = () => {
       }
     };
 
+    const fetchListings = async () => {
+      try {
+        const q = query(collection(db, 'Listing'), where('storeId', '==', storeId));
+        const querySnapshot = await getDocs(q);
+        const listingsData: Listing[] = [];
+        querySnapshot.forEach((doc) => {
+          listingsData.push(doc.data() as Listing);
+        });
+        setListings(listingsData);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      }
+    };
+
     fetchStoreDetails();
+    fetchListings();
   }, [storeId]);
 
   if (!store) {
     return <Text>Loading...</Text>;
   }
+
+  const handleAddToCart = (listing: Listing) => {
+    // Handle adding to cart functionality here
+    console.log(`Added ${listing.name} to cart`);
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -70,6 +98,24 @@ const StoreDetailsPage: React.FC = () => {
             <Text style={styles.details}>Best Chicken Rice in Town</Text>
           </View>
           <Text style={styles.promotionText}>Bring your own container for $1 Discount!</Text>
+        </View>
+      </View>
+
+      <View style={styles.listingsContainer}>
+        <View style={styles.listingsGrid}>
+          {listings.map((listing, index) => (
+            <View key={index} style={styles.listingCard}>
+              <Image source={{ uri: 'https://via.placeholder.com/150' }} style={styles.listingImage} />
+              <View style={styles.listingDetails}>
+                <Text style={styles.listingName}>{listing.name}</Text>
+                <Text style={styles.listingDescription}>{listing.description}</Text>
+                <Text style={styles.listingPrice}>${listing.price.toFixed(2)}</Text>
+              </View>
+              <TouchableOpacity onPress={() => handleAddToCart(listing)} style={styles.addButton}>
+                <MaterialIcons name="add" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          ))}
         </View>
       </View>
     </ScrollView>
@@ -126,6 +172,61 @@ const styles = StyleSheet.create({
     color: 'green',
     marginTop: 10,
     textAlign: 'left',
+  },
+  listingsContainer: {
+    padding: 20,
+  },
+  listingsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  listingCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    width: (width - 60) / 2, // Adjusting for padding and margin
+    position: 'relative',
+  },
+  listingImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  listingDetails: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  listingName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  listingDescription: {
+    fontSize: 14,
+    color: '#777',
+    textAlign: 'center',
+  },
+  listingPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  addButton: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: 'darkgreen',
+    borderRadius: 20,
+    padding: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
