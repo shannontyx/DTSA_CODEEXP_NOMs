@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import { useNavigation } from '@react-navigation/native';
 
 const CartScreen = () => {
-  const navigation = useNavigation(); // Use navigation hook
+  const navigation = useNavigation();
   const cartItems = [
     {
       name: 'DIY Bowl',
@@ -43,12 +43,11 @@ const CartScreen = () => {
           <Text style={styles.totalText}>${total.toFixed(2)}</Text>
         </View>
       </View>
+
       <TouchableOpacity 
-        style={styles.paymentButton}
-        onPress={() => navigation.navigate('Checkout')} // Navigate to Checkout
-      >
-        <Text style={styles.paymentButtonText}>Review Payment</Text>
-      </TouchableOpacity>
+      style={styles.paymentButton} onPress={() => navigation.navigate('CheckoutScreen')}>
+          <Text style={styles.paymentButtonText}>Checkout Cart Screen</Text>
+        </TouchableOpacity>
     </View>
   );
 };

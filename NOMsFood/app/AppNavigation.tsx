@@ -10,7 +10,11 @@ import CheckoutScreen from './CheckoutScreen';
 import CreateStore from './CreateStore';
 import ManageStore from './ManageStore';
 import ViewStore from './(tabs)/ViewStore';
+<<<<<<< HEAD
 import viewReviews from './(tabs)/viewReviews';
+=======
+import StoreDetailsPage from './StoreDetailsPage';
+>>>>>>> origin/origin/eunice
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +32,7 @@ const AppNavigator = () => {
         <Stack.Screen name="ManageStore" component={ManageStore} />
         <Stack.Screen name="ViewStore" component={ViewStore} />
         <Stack.Screen name="viewReviews" component={viewReviews} />
+        <Stack.Screen name="StoreDetailsPage" component={StoreDetailsPage} />
       </Stack.Navigator>
     </NavigationContainer>
   );
