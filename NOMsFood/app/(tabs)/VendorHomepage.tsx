@@ -26,7 +26,7 @@ const VendorHomepage = () => {
           <Icon name="home" size={40} color="#6B8E23" />
           <Text style={styles.buttonText}>Manage Store</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ManageListing')}>
           <Icon name="cutlery" size={40} color="#6B8E23" />
           <Text style={styles.buttonText}>Manage Listing</Text>
         </TouchableOpacity>
