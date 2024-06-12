@@ -29,8 +29,8 @@ const HomeScreen = () => {
       <View style={styles.searchBarContainer}>
         <Icon name="search" size={20} color="#000" />
         <TextInput placeholder="Search Store..." style={styles.searchBar} />
-        <TouchableOpacity onPress={() => navigation.navigate('CartScreen')}>
-          <Icon name="shopping-cart" size={24} color="#000" style={styles.cartIcon} />
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Icon name="user" size={24} color="#000" style={styles.userIcon} />
         </TouchableOpacity>
       </View>
       <TouchableOpacity 
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 16,
   },
-  cartIcon: {
+  userIcon: {
     marginLeft: 10,
   },
   browseStoresButton: {

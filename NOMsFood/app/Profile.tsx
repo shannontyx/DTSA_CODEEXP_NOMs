@@ -3,7 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import { doc, updateDoc, getFirestore, getDocs, where, query, collection } from 'firebase/firestore';
 import { useAuth } from '../components/authContext';
 import { doSignOut } from '@/firebase/auth';
-import { TextInput, View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { TextInput, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const EditProfile: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const EditProfile: React.FC = () => {
         name: '',
         username: '',
         contact: '',
+        type: '',
     });
     const authContext = useAuth();
     const { userLoggedIn, currentUserEmail } = authContext || {};
@@ -20,7 +22,6 @@ const EditProfile: React.FC = () => {
     const db = getFirestore();
 
     useEffect(() => {
-
         if (!userLoggedIn) {
             navigation.navigate('loginScreen');
             return;
@@ -78,9 +79,11 @@ const EditProfile: React.FC = () => {
                 const userDocRef = querySnapshot.docs[0].ref;
 
                 // Update the user document
-                await updateDoc(userDocRef, formData);
+                await updateDoc(userDocRef, {
+                    contact: formData.contact,
+                    type: formData.type,
+                });
                 console.log('Profile updated successfully');
-                navigation.navigate('Profile'); // or wherever you wish to redirect after update
                 setEditMode(false);
             } else {
                 // This will run if there's no user with the given email
@@ -93,55 +96,52 @@ const EditProfile: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.formContainer}>
-                <Text style={styles.header}>Edit Profile</Text>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Email: (not editable)</Text>
-                    <TextInput
-                        style={[styles.input, !editMode && styles.nonEditableInput]}
-                        value={formData.email}
-                        onChangeText={(value) => handleInputChange('email', value)}
-                        placeholder="Email"
-                        editable={false}
-                    />
-                    <Text style={styles.label}>Name:</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={formData.name}
-                        onChangeText={(value) => handleInputChange('name', value)}
-                        placeholder="Name"
-                        editable={editMode}
-                    />
-                    <Text style={styles.label}>Username:</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={formData.username}
-                        onChangeText={(value) => handleInputChange('username', value)}
-                        placeholder="Username"
-                        editable={editMode}
-                    />
-                    <Text style={styles.label}>Contact:</Text>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Text style={styles.backButton}>Back</Text>
+            </TouchableOpacity>
+            <View style={styles.profileContainer}>
+                <Icon name="user-circle" size={100} color="#000" />
+                <TouchableOpacity style={styles.editIcon} onPress={handleToggleEditMode}>
+                    <Icon name="edit" size={30} color="#2c5f2d" />
+                </TouchableOpacity>
+                <Text style={styles.name}>{formData.name}</Text>
+                <Text style={styles.username}>@{formData.username}</Text>
+            </View>
+            <View style={styles.separator} />
+            <View style={styles.detailsContainer}>
+                <Text style={styles.detailLabel}>Email:</Text>
+                <Text style={styles.detailText}>{formData.email}</Text>
+                <Text style={styles.detailLabel}>Contact:</Text>
+                {editMode ? (
                     <TextInput
                         style={styles.input}
                         value={formData.contact}
                         onChangeText={(value) => handleInputChange('contact', value)}
                         placeholder="Contact"
-                        editable={editMode}
                     />
-                </View>
-
-                {editMode ? (
-                    <TouchableOpacity style={styles.updateButton} onPress={handleSubmit}>
-                        <Text style={styles.buttonText}>Update Profile</Text>
-                    </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity style={styles.editButton} onPress={handleToggleEditMode}>
-                        <Text style={styles.buttonText}>Edit Profile</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.detailText}>{formData.contact}</Text>
                 )}
-
+                <Text style={styles.detailLabel}>Type:</Text>
+                {editMode ? (
+                    <TextInput
+                        style={styles.input}
+                        value={formData.type}
+                        onChangeText={(value) => handleInputChange('type', value)}
+                        placeholder="Type"
+                    />
+                ) : (
+                    <Text style={styles.detailText}>{formData.type}</Text>
+                )}
+            </View>
+            {editMode && (
+                <TouchableOpacity style={styles.updateButton} onPress={handleSubmit}>
+                    <Text style={styles.buttonText}>Save Changes</Text>
+                </TouchableOpacity>
+            )}
+            <View style={styles.bottomSection}>
                 <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-                    <Text style={styles.buttonText}>Sign Out</Text>
+                    <Text style={styles.signOutButtonText}>Sign Out</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -151,25 +151,54 @@ const EditProfile: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
+        backgroundColor: '#F5F5F5',
+        padding: 20,
+    },
+    backButton: {
+        fontSize: 16,
+        color: '#000',
+        marginBottom: 20,
+    },
+    profileContainer: {
         alignItems: 'center',
-        backgroundColor: 'white',
+        marginBottom: 20,
+        position: 'relative',
     },
-    formContainer: {
-        width: '80%',
+    editIcon: {
+        position: 'absolute',
+        top: 0,
+        right: 5,
     },
-    header: {
+    name: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
+        marginTop: 10,
     },
-    inputContainer: {
+    username: {
+        fontSize: 18,
+        color: '#666',
         marginBottom: 20,
     },
-    label: {
+    separator: {
+        width: '100%',
+        height: 1,
+        backgroundColor: '#ccc',
+        marginBottom: 20,
+    },
+    detailsContainer: {
+        marginBottom: 20,
+        backgroundColor: '#FFF',
+        padding: 20,
+        borderRadius: 10,
+    },
+    detailLabel: {
         fontSize: 16,
-        marginBottom: 5,
+        color: '#666',
+    },
+    detailText: {
+        fontSize: 18,
+        marginBottom: 10,
+        color: '#000',
     },
     input: {
         borderWidth: 1,
@@ -177,37 +206,40 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 10,
         marginBottom: 10,
-    },
-    link: {
-        color: 'blue',
-        textAlign: 'center',
-        marginTop: 10,
-    },
-    nonEditableInput: {
-        backgroundColor: 'white', 
-        color: '#000', 
-      },
-    editButton: {
-        backgroundColor: '#4CAF50',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
+        backgroundColor: '#FFF',
     },
     updateButton: {
-        backgroundColor: '#2196F3',
+        backgroundColor: '#2c5f2d',
         padding: 10,
+        borderWidth: 1,
         borderRadius: 5,
-        marginBottom: 10,
-    },
-    signOutButton: {
-        backgroundColor: '#f44336',
-        padding: 10,
-        borderRadius: 5,
+        alignItems: 'center',
+        marginBottom: 20,
+        width: 150, // Set the width to a smaller size
+        alignSelf: 'center', // Center the button horizontally
     },
     buttonText: {
-        color: 'white',
-        textAlign: 'center',
+        color: '#FFF',
         fontSize: 16,
+        fontWeight: 'bold',
+    },
+    bottomSection: {
+        padding: 20,
+        borderRadius: 10,
+        marginTop: 'auto',
+    },
+    signOutButton: {
+        backgroundColor: '#FFF',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    signOutButtonText: {
+        color: '#333',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 
