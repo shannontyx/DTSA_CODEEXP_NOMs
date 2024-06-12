@@ -6,11 +6,15 @@ import { collection, addDoc, query, where, getDocs, updateDoc } from "firebase/f
 import MapView, { Marker } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useAuth } from '../components/authContext';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 function CreateStore() {
   const navigate = useNavigation();
+  const auth = useAuth();
+
+  const { currentUserEmail = '', currentUserId = '' } = auth ?? {};
   const [store, setStore] = useState({
     name: '',
     description: '',
@@ -56,8 +60,7 @@ function CreateStore() {
       });
 
       const usersCollectionRef = collection(db, "Users");
-      const q = query(usersCollectionRef, where("email", "==", store.creatorEmail));
-      const querySnapshot = await getDocs(q);
+      const q = query(usersCollectionRef, where("email", "==", currentUserEmail));      const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const userDocRef = querySnapshot.docs[0].ref;
@@ -89,12 +92,7 @@ function CreateStore() {
         value={store.description}
         onChangeText={(value) => handleInputChange('description', value)}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Vendor Email"
-        value={store.creatorEmail}
-        onChangeText={(value) => handleInputChange('creatorEmail', value)}
-      />
+      
       <TextInput
         style={styles.input}
         placeholder="Opening Hours (HH:MM)"
