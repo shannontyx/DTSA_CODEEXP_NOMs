@@ -58,6 +58,7 @@ const EditProfile: React.FC = () => {
     };
 
     const handleSignOut = () => {
+        await AsyncStorage.clear();
         doSignOut().then(() => {
             navigation.navigate('index');
         });

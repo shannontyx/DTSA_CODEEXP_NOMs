@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AppState } from 'react-native';
+import { StripeProvider } from '@stripe/stripe-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import LoginScreen from './(tabs)/loginScreen';
 import HomeScreen from './(tabs)/homepage';
 import AllStores from './AllStores';
@@ -16,10 +19,36 @@ import ManageListing from './ManageListing';
 import StoresCategories from './StoresCategories';
 import CustViewOrders from './CustViewOrders';
 
+const STRIP_KEY = 'pk_test_51PQluUJWme9UJ0mv52zZiac1nui2SDNUJJiNIcPyeM6xDmfiYsDurb90Hqjnjf1vc7K1lUNbL6adFgqQShghfXsO00Vden6qcH';
+
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
+  useEffect(() => {
+    const clearAsyncStorage = async () => {
+      try {
+        await AsyncStorage.clear();
+        console.log('AsyncStorage cleared');
+      } catch (e) {
+        console.error('Failed to clear AsyncStorage:', e);
+      }
+    };
+
+    const handleAppStateChange = (nextAppState) => {
+      if (nextAppState === 'active') {
+        clearAsyncStorage();
+      }
+    };
+
+    AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      AppState.removeEventListener('change', handleAppStateChange);
+    };
+  }, []);
+
   return (
+    <StripeProvider publishableKey={STRIP_KEY}>
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} />
@@ -38,6 +67,7 @@ const AppNavigator = () => {
         <Stack.Screen name="CustViewOrders" component={CustViewOrders} />
       </Stack.Navigator>
     </NavigationContainer>
+    </StripeProvider>
   );
 };
 

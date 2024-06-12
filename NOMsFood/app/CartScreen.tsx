@@ -81,7 +81,7 @@ const CartScreen = () => {
   };
 
   const handleCheckout = () => {
-    navigation.navigate('CheckoutScreen', { orderedStoreId: orderedStoreId });
+    navigation.navigate('CheckoutScreen', { orderedStoreId: orderedStoreId, bringOwnContainer: bringOwnContainer });
   };
 
   const handleBringOwnContainerToggle = () => {
