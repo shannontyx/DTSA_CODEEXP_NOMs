@@ -114,6 +114,13 @@ const HomeScreen = () => {
 </TouchableOpacity>
 <TouchableOpacity
   style={styles.footerButton}
+  onPress={() => navigation.navigate('ChatScreen')}
+>
+  <Icon name="podcast" size={24} color="#2c5f2d" />
+  <Text style={styles.footerButtonText}>AI Assist</Text>
+</TouchableOpacity>
+<TouchableOpacity
+  style={styles.footerButton}
   onPress={() => navigation.navigate('CustViewOrders')}
 >
   <Icon name="file" size={24} color="#2c5f2d" />

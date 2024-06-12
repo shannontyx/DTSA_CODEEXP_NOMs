@@ -17,7 +17,7 @@ import CustViewOrders from './CustViewOrders';
 import HomeScreen from './index';
 import HomePage from './Homepage'
 import VendorHomepage from './(tabs)/VendorHomepage';
-import ChatScreen from './(tabs)/ChatScreen';
+import ChatScreen from './ChatScreen';
 
 const Stack = createNativeStackNavigator();
 
