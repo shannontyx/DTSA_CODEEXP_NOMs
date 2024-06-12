@@ -74,6 +74,9 @@ const HomeScreen = () => {
         <TouchableOpacity onPress={() => navigation.navigate('CheckoutScreen')}>
           <Text>Checkout Cart Screen</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('CustViewOrders')}>
+          <Text>Customer View Orders</Text>
+          </TouchableOpacity>
       </View>
       {/* <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>Order Again</Text>
