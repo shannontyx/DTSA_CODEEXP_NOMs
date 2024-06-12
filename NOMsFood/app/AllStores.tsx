@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 import { db } from '../firebase/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import moment from 'moment';
 
 const AllStores = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { autoFocus } = route.params || {};
   const [stores, setStores] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredStores, setFilteredStores] = useState([]);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -47,6 +50,12 @@ const AllStores = () => {
     }
   }, [searchQuery, stores]);
 
+  useEffect(() => {
+    if (autoFocus && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [autoFocus]);
+
   const isStoreOpen = (opening, closing) => {
     const currentTime = moment();
     const openingTime = moment(opening, "HH:mm");
@@ -62,47 +71,48 @@ const AllStores = () => {
   };
 
   const renderItem = ({ item }) => (
-  <View style={[styles.storeContainer, !item.isOpen && styles.closedStore]}>
-    <Image source={require('./../assets/images/storeDisplay.png')} style={styles.storeImage} />
-    <View style={styles.storeDetails}>
-      {item.isOpen ? (
-        <TouchableOpacity onPress={() => navigation.navigate('StoreDetailsPage', { storeId: item.storeId })}>
+    <View style={[styles.storeContainer, !item.isOpen && styles.closedStore]}>
+      <Image source={require('./../assets/images/storeDisplay.png')} style={styles.storeImage} />
+      <View style={styles.storeDetails}>
+        {item.isOpen ? (
+          <TouchableOpacity onPress={() => navigation.navigate('StoreDetailsPage', { storeId: item.storeId })}>
+            <Text style={styles.storeName}>{item.name}</Text>
+          </TouchableOpacity>
+        ) : (
           <Text style={styles.storeName}>{item.name}</Text>
-        </TouchableOpacity>
-      ) : (
-        <Text style={styles.storeName}>{item.name}</Text>
-      )}
-      <View style={styles.storeInfo}>
-        <Icon name="clock-o" size={16} color="#000" />
-        <Text style={styles.storeText}> Opening: {item.opening} - Closing: {item.closing}</Text>
-      </View>
-      <View style={styles.storeInfo}>
-        <Icon name="map-marker" size={16} color="#000" />
-        <Text style={styles.storeText}>{item.location}</Text>
-      </View>
-      <View style={styles.storeInfo}>
-        <Icon name="info-circle" size={16} color="#000" />
-        <Text style={styles.storeText}>{item.description}</Text>
+        )}
+        <View style={styles.storeInfo}>
+          <Icon name="clock-o" size={16} color="#000" />
+          <Text style={styles.storeText}> Opening: {item.opening} - Closing: {item.closing}</Text>
+        </View>
+        <View style={styles.storeInfo}>
+          <Icon name="map-marker" size={16} color="#000" />
+          <Text style={styles.storeText}>{item.location}</Text>
+        </View>
+        <View style={styles.storeInfo}>
+          <Icon name="info-circle" size={16} color="#000" />
+          <Text style={styles.storeText}>{item.description}</Text>
+        </View>
       </View>
     </View>
-  </View>
   );
 
-return (
-  <View style={styles.container}>
-    <TextInput
-      style={styles.searchBar}
-      placeholder="Search Stores.."
-      value={searchQuery}
-      onChangeText={text => setSearchQuery(text)}
-    />
-    <FlatList
-      data={filteredStores}
-      keyExtractor={(item) => item.storeId}
-      renderItem={renderItem}
-    />
-  </View>
-);
+  return (
+    <View style={styles.container}>
+      <TextInput
+        ref={searchInputRef}
+        style={styles.searchBar}
+        placeholder="Search for stores..."
+        value={searchQuery}
+        onChangeText={text => setSearchQuery(text)}
+      />
+      <FlatList
+        data={filteredStores}
+        keyExtractor={(item) => item.storeId}
+        renderItem={renderItem}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({

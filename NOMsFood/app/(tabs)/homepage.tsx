@@ -23,7 +23,7 @@ const HomeScreen = () => {
   const pastOrders = [];
 
   const handleSearchBarPress = () => {
-    navigation.navigate('AllStores');
+    navigation.navigate('AllStores', { autoFocus: true });
   };
 
   return (
