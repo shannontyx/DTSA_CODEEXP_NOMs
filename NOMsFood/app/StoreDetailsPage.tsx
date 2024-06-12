@@ -26,6 +26,7 @@ interface Listing {
   quantity: number;
   storeId: string;
   userId: string;
+  imageurl?: string;
 }
 
 interface CartItem extends Listing {
@@ -158,7 +159,10 @@ const StoreDetailsPage: React.FC = () => {
           <View style={styles.listingsGrid}>
             {listings.map((listing, index) => (
               <View key={index} style={styles.listingCard}>
-                <Image source={{ uri: 'https://via.placeholder.com/150' }} style={styles.listingImage} />
+                <Image
+                  source={{ uri: listing.imageurl || 'https://via.placeholder.com/150' }}
+                  style={styles.listingImage}
+                />
                 <View style={styles.listingDetails}>
                   <Text style={styles.listingName}>{listing.name}</Text>
                   <Text style={styles.listingDescription}>{listing.description}</Text>
