@@ -20,16 +20,22 @@ const HomeScreen = () => {
     { name: 'EggTopia', image: require('../../assets/images/eggtopia.png') },
     { name: 'Duck', image: require('../../assets/images/wafflesia.png') },
   ];
-  const pastOrders = [
+  const pastOrders = [];
 
-  ];
+  const handleSearchBarPress = () => {
+    navigation.navigate('AllStores');
+  };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.topContainer}>
         <View style={styles.searchBarContainer}>
           <Icon name="search" size={20} color="#000" />
-          <TextInput placeholder="Search Store..." style={styles.searchBar} />
+          <TextInput 
+            placeholder="Search Store..." 
+            style={styles.searchBar} 
+            onFocus={handleSearchBarPress} 
+          />
           <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
             <Icon name="user" size={24} color="#000" style={styles.userIcon} />
           </TouchableOpacity>
@@ -75,7 +81,7 @@ const HomeScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('CustViewOrders')}>
           <Text>Customer View Orders</Text>
-          </TouchableOpacity>
+        </TouchableOpacity>
       </View>
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>Order Again</Text>
@@ -94,12 +100,15 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
- 
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+    padding: 0,
+  },
   topContainer: {
     backgroundColor: '#2c5f2d', // Dark green background color for the top part
     paddingBottom: 10, 
-    height: 120,// Padding to provide space below the search bar
-
+    height: 120, // Padding to provide space below the search bar
   },
   searchBarContainer: {
     flexDirection: 'row',

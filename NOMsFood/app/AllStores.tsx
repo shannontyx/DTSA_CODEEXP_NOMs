@@ -92,7 +92,7 @@ return (
   <View style={styles.container}>
     <TextInput
       style={styles.searchBar}
-      placeholder="Enter your location to sort by distance..."
+      placeholder="Search Stores.."
       value={searchQuery}
       onChangeText={text => setSearchQuery(text)}
     />
