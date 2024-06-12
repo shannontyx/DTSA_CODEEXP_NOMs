@@ -1,323 +1,519 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Modal, TextInput, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
-import { getAuth } from 'firebase/auth';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Modal,
+  TextInput,
+  Alert,
+  Button,
+} from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
+import { getAuth } from "firebase/auth";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
+import * as ImagePicker from 'expo-image-picker';
+import { ImagePickerResult } from 'expo-image-picker';
 
 interface Listing {
-    id: string;
-    userId: string;
-    storeId: string;
-    price: number;
-    quantity: number;
-    description: string;
-    name: string;
+  id: string;
+  userId: string;
+  storeId: string;
+  price: number;
+  quantity: number;
+  description: string;
+  name: string;
+  imageurl: string;
 }
 
 const ManageListing = () => {
-    const [activeTab, setActiveTab] = useState('In Stock');
-    const [modalVisible, setModalVisible] = useState(false);
-    const [editMode, setEditMode] = useState(false);
-    const [currentListing, setCurrentListing] = useState<Listing | null>(null);
-    const [productName, setProductName] = useState('');
-    const [productDescription, setProductDescription] = useState('');
-    const [price, setPrice] = useState('');
-    const [quantity, setQuantity] = useState('');
-    const [inStockListings, setInStockListings] = useState<Listing[]>([]);
-    const [outOfStockListings, setOutOfStockListings] = useState<Listing[]>([]);
-    const auth = getAuth();
-    const userId = auth.currentUser?.uid || '';
-    const [storeId, setStoreId] = useState('');
+  const [activeTab, setActiveTab] = useState("In Stock");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentListing, setCurrentListing] = useState<Listing | null>(null);
+  const [productName, setProductName] = useState("");
+  const [productDescription, setProductDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [inStockListings, setInStockListings] = useState<Listing[]>([]);
+  const [outOfStockListings, setOutOfStockListings] = useState<Listing[]>([]);
+  const auth = getAuth();
+  const userId = auth.currentUser?.uid || "";
+  const [storeId, setStoreId] = useState("");
 
-    useEffect(() => {
-        const fetchListings = async () => {
-            if (!userId) {
-                console.log('User ID not available');
-                return;
-            }
-            console.log('Fetching listings for user:', userId);
+  const storage = getStorage();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageRef, setImageRef] = useState<string | null>(null);
 
-            const q2 = query(collection(db, 'Stores'), where('userId', '==', userId));
-            const querySnapshot2 = await getDocs(q2);
-            
-            querySnapshot2.forEach((doc) => {
-                setStoreId(doc.id);
-            });
+  const handleFileChange = async () => {
+    // Ask for permission to access media library
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-            const q = query(collection(db, 'Listing'), where('userId', '==', userId));
-            const querySnapshot = await getDocs(q);
+    if (permissionResult.granted === false) {
+      alert('Permission to access media library is required!');
+      return;
+    }
 
-            console.log('Query snapshot:', querySnapshot.size, 'documents found');
+    // Open image picker and wait for the result
+    const pickerResult: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
-            querySnapshot.forEach((doc) => {
-                console.log('Document:', doc.id, doc.data());
-            });
+    // If the user canceled the picker, do nothing
+    if (pickerResult.canceled) {
+      return;
+    }
 
-            const fetchedListings = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Listing));
+    // If the user picked an image, update the state with the image URI
+    if (!pickerResult.canceled) {
+      setSelectedImage(pickerResult.assets[0].uri);
+      console.log(pickerResult.assets[0].uri)
+    }
+  };
 
-            const inStock = fetchedListings.filter(listing => listing.quantity > 0);
-            const outOfStock = fetchedListings.filter(listing => listing.quantity <= 0);
+  
+  const uploadPhoto = async (imageRef) => {
+    if (!selectedImage) {
+      //console.error("No file selected");
+      return;
+    }
 
-            setInStockListings(inStock);
-            setOutOfStockListings(outOfStock);
-        };
+    try {
+      // Check if a photo already exists for the user
+      const storageRef = ref(storage, `users/listing/${imageRef}`);
 
-        fetchListings();
-    }, [userId]);
+      // Delete the file if it exists
+      await deleteObject(storageRef)
+        .then(() => {
+          console.log("Previous file deleted successfully");
+        })
+        .catch((error) => {
+          // console.error("Error deleting previous file:", error);
+        });
 
-    const handleCreateListing = async () => {
-        if (!productName || !productDescription || !price || !quantity) {
-            console.log('Please fill out all fields');
-            return;
-        }
+      // Convert the selected image URI to a Blob object
+      const response = await fetch(selectedImage);
+      const blob = await response.blob();
 
-        const newListing: Omit<Listing, 'id'> = {
-            userId,
-            storeId: storeId, 
-            name: productName,
-            description: productDescription,
-            price: parseFloat(price),
-            quantity: parseInt(quantity, 10),
-        };
+    await uploadBytes(storageRef, blob);
+    console.log("Uploaded a blob or file!");
 
-        try {
-            const docRef = await addDoc(collection(db, 'Listing'), newListing);
-            console.log('Document written with ID: ', docRef.id);
+    // Get the download URL
+    const url = await getDownloadURL(storageRef);
+    console.log("Image URL:", url);
 
-            // Update the local state
-            const updatedListing = { ...newListing, id: docRef.id };
-            if (updatedListing.quantity > 0) {
-                setInStockListings([...inStockListings, updatedListing]);
-            } else {
-                setOutOfStockListings([...outOfStockListings, updatedListing]);
-            }
+    // Update the Firestore document with the image URL
+    const listingRef = doc(db, 'Listing', imageRef);
+    await updateDoc(listingRef, { imageurl: url });
 
-            // Close the modal
-            setModalVisible(false);
-            resetForm();
-        } catch (error) {
-            console.error('Error adding document: ', error);
-        }
-    };
+      console.log("Image was added successfully to the storage");
+    } catch (error) {
+      // Handle error
+      console.error("Error:", error);
+    }
+  };
 
-    const handleEditListing = async () => {
-        if (!currentListing) return;
+  const fetchListings = async () => {
+    if (!userId) {
+      console.log("User ID not available");
+      return;
+    }
+    console.log("Fetching listings for user:", userId);
 
-        const updatedListing = {
-            ...currentListing,
-            name: productName,
-            description: productDescription,
-            price: parseFloat(price),
-            quantity: parseInt(quantity, 10),
-        };
+    const q2 = query(collection(db, "Stores"), where("userId", "==", userId));
+    const querySnapshot2 = await getDocs(q2);
 
-        try {
-            const listingDoc = doc(db, 'Listing', currentListing.id);
-            await updateDoc(listingDoc, updatedListing);
+    querySnapshot2.forEach((doc) => {
+      setStoreId(doc.id);
+    });
 
-            // Update the local state
-            const inStock = updatedListing.quantity > 0;
-            if (inStock) {
-                setInStockListings(prev => prev.map(listing => listing.id === currentListing.id ? updatedListing : listing));
-                setOutOfStockListings(prev => prev.filter(listing => listing.id !== currentListing.id));
-            } else {
-                setOutOfStockListings(prev => prev.map(listing => listing.id === currentListing.id ? updatedListing : listing));
-                setInStockListings(prev => prev.filter(listing => listing.id !== currentListing.id));
-            }
+    const q = query(collection(db, "Listing"), where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
 
-            // Close the modal
-            setModalVisible(false);
-            resetForm();
-        } catch (error) {
-            console.error('Error updating document: ', error);
-        }
-    };
+    console.log("Query snapshot:", querySnapshot.size, "documents found");
 
-    const handleDeleteListing = async (listingId: string) => {
-        try {
-            await deleteDoc(doc(db, 'Listing', listingId));
+    querySnapshot.forEach((doc) => {
+      console.log("Document:", doc.id, doc.data());
+    });
 
-            // Update the local state
-            setInStockListings(prev => prev.filter(listing => listing.id !== listingId));
-            setOutOfStockListings(prev => prev.filter(listing => listing.id !== listingId));
-        } catch (error) {
-            console.error('Error deleting document: ', error);
-        }
-    };
-
-    const confirmDeleteListing = (listingId: string) => {
-        Alert.alert(
-            "Delete Listing",
-            "Are you sure you want to delete this listing?",
-            [
-                { text: "Cancel", style: "cancel" },
-                { text: "Delete", onPress: () => handleDeleteListing(listingId), style: "destructive" }
-            ],
-            { cancelable: true }
-        );
-    };
-
-    const resetForm = () => {
-        setProductName('');
-        setProductDescription('');
-        setPrice('');
-        setQuantity('');
-        setCurrentListing(null);
-        setEditMode(false);
-    };
-
-    const openEditModal = (listing: Listing) => {
-        setCurrentListing(listing);
-        setProductName(listing.name);
-        setProductDescription(listing.description);
-        setPrice(listing.price.toString());
-        setQuantity(listing.quantity.toString());
-        setEditMode(true);
-        setModalVisible(true);
-    };
-
-    const renderListings = (listings: Listing[]) => {
-        return listings.map((listing) => (
-            <View key={listing.id} style={styles.listingCard}>
-                <Image source={{ uri: 'https://via.placeholder.com/80' }} style={styles.listingImage} />
-                <View style={styles.listingInfo}>
-                    <Text style={styles.listingTitle}>{listing.name}</Text>
-                    <Text style={styles.listingDescription}>Description: {listing.description}</Text>
-                    <Text style={styles.listingDetails}>Price: ${listing.price}</Text>
-                    <Text style={styles.listingDetails}>Quantity: {listing.quantity}</Text>
-                </View>
-                <TouchableOpacity style={styles.editButton} onPress={() => openEditModal(listing)}>
-                    <Icon name="edit" size={24} color="#2c5f2d" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteButton} onPress={() => confirmDeleteListing(listing.id)}>
-                    <Icon name="trash" size={24} color="red" />
-                </TouchableOpacity>
-            </View>
-        ));
-    };
-
-    return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerText}>Manage Listing</Text>
-            </View>
-            <View style={styles.tabContainer}>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'In Stock' && styles.activeTab]}
-                    onPress={() => setActiveTab('In Stock')}>
-                    <Text style={[styles.tabText, activeTab === 'In Stock' && styles.activeTabText]}>In Stock</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'Out Of Stock' && styles.activeTab]}
-                    onPress={() => setActiveTab('Out Of Stock')}>
-                    <Text style={[styles.tabText, activeTab === 'Out Of Stock' && styles.activeTabText]}>Out Of Stock</Text>
-                </TouchableOpacity>
-            </View>
-            <ScrollView>
-                <TouchableOpacity style={styles.listingButton} onPress={() => 
-                  { resetForm();
-                    setModalVisible(true);
-                    }}>
-                    <Text style={styles.listingButtonText}>Create Listing</Text>
-                </TouchableOpacity>
-                {activeTab === 'In Stock' ? renderListings(inStockListings) : renderListings(outOfStockListings)}
-            </ScrollView>
-            <View style={styles.footer}>
-                <TouchableOpacity style={styles.footerButton}>
-                    <Icon name="group" size={24} color="#2c5f2d" />
-                    <Text style={styles.footerButtonText}>Manage Store</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.footerButton} onPress={() => setModalVisible(true)}>
-                    <Icon name="plus-square" size={24} color="#2c5f2d" />
-                    <Text style={styles.footerButtonText}>Create Listing</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.footerButton}>
-                    <Icon name="star" size={24} color="#2c5f2d" />
-                    <Text style={styles.footerButtonText}>View Reviews</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.footerButton}>
-                    <Icon name="shopping-cart" size={24} color="#2c5f2d" />
-                    <Text style={styles.footerButtonText}>View Orders</Text>
-                </TouchableOpacity>
-            </View>
-
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => {
-                    setModalVisible(!modalVisible);
-                }}>
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <TouchableOpacity style={styles.uploadButton}>
-                            <Text style={styles.uploadButtonText}>Upload Image</Text>
-                        </TouchableOpacity>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Product Name"
-                            value={productName}
-                            onChangeText={setProductName}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Product Description"
-                            value={productDescription}
-                            onChangeText={setProductDescription}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Price ($)"
-                            value={price}
-                            onChangeText={setPrice}
-                            keyboardType="numeric"
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Quantity"
-                            value={quantity}
-                            onChangeText={setQuantity}
-                            keyboardType="numeric"
-                        />
-                        <TouchableOpacity style={styles.updateButton} onPress={editMode ? handleEditListing : handleCreateListing}>
-                            <Text style={styles.updateButtonText}>{editMode ? 'Save Changes' : 'Create Listing'}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-        </View>
+    const fetchedListings = querySnapshot.docs.map(
+      (doc) =>
+        ({
+          id: doc.id,
+          ...doc.data(),
+        } as Listing)
     );
+
+    const inStock = fetchedListings.filter((listing) => listing.quantity > 0);
+    const outOfStock = fetchedListings.filter(
+      (listing) => listing.quantity <= 0
+    );
+
+    setInStockListings(inStock);
+    setOutOfStockListings(outOfStock);
+  };
+
+  useEffect(() => {
+    
+
+    fetchListings();
+  }, [userId]);
+
+  const handleCreateListing = async () => {
+    if (!productName || !productDescription || !price || !quantity) {
+      console.log("Please fill out all fields");
+      return;
+    }
+
+    const newListing: Omit<Listing, "id"> = {
+      userId,
+      storeId: storeId,
+      name: productName,
+      description: productDescription,
+      price: parseFloat(price),
+      quantity: parseInt(quantity, 10),
+    };
+
+    try {
+      const docRef = await addDoc(collection(db, "Listing"), newListing);
+      console.log("Document written with ID: ", docRef.id);
+      setImageRef(docRef.id);
+      await uploadPhoto(docRef.id);
+
+      // Update the local state
+      const updatedListing = { ...newListing, id: docRef.id };
+      if (updatedListing.quantity > 0) {
+        setInStockListings([...inStockListings, updatedListing]);
+      } else {
+        setOutOfStockListings([...outOfStockListings, updatedListing]);
+      }
+
+      await fetchListings();
+      // Close the modal
+      setModalVisible(false);
+      resetForm();
+      setSelectedImage(null);
+      
+
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
+  };
+
+  const handleEditListing = async () => {
+    if (!currentListing) return;
+    setImageRef(currentListing.id);
+    uploadPhoto(currentListing.id);
+
+    const updatedListing = {
+      ...currentListing,
+      name: productName,
+      description: productDescription,
+      price: parseFloat(price),
+      quantity: parseInt(quantity, 10),
+    };
+
+    try {
+      const listingDoc = doc(db, "Listing", currentListing.id);
+      await updateDoc(listingDoc, updatedListing);
+
+      const updatedListingWithImage = { ...updatedListing, imageurl:  imageRef}
+      
+
+      // Update the local state
+      const inStock = updatedListing.quantity > 0;
+      if (inStock) {
+        setInStockListings((prev) =>
+          prev.map((listing) =>
+            listing.id === currentListing.id ? updatedListing : listing
+          )
+        );
+        setOutOfStockListings((prev) =>
+          prev.filter((listing) => listing.id !== currentListing.id)
+        );
+      } else {
+        setOutOfStockListings((prev) =>
+          prev.map((listing) =>
+            listing.id === currentListing.id ? updatedListing : listing
+          )
+        );
+        setInStockListings((prev) =>
+          prev.filter((listing) => listing.id !== currentListing.id)
+        );
+      }
+
+      // Close the modal
+      setModalVisible(false);
+      resetForm();
+      setSelectedImage(null);
+      await fetchListings();
+
+    } catch (error) {
+      console.error("Error updating document: ", error);
+    }
+  };
+
+  const handleDeleteListing = async (listingId: string) => {
+    try {
+      await deleteDoc(doc(db, "Listing", listingId));
+
+      // Update the local state
+      setInStockListings((prev) =>
+        prev.filter((listing) => listing.id !== listingId)
+      );
+      setOutOfStockListings((prev) =>
+        prev.filter((listing) => listing.id !== listingId)
+      );
+    } catch (error) {
+      console.error("Error deleting document: ", error);
+    }
+  };
+
+  const confirmDeleteListing = (listingId: string) => {
+    Alert.alert(
+      "Delete Listing",
+      "Are you sure you want to delete this listing?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          onPress: () => handleDeleteListing(listingId),
+          style: "destructive",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const resetForm = () => {
+    setProductName("");
+    setProductDescription("");
+    setPrice("");
+    setQuantity("");
+    setCurrentListing(null);
+    setEditMode(false);
+  };
+
+  const openEditModal = (listing: Listing) => {
+    setCurrentListing(listing);
+    setProductName(listing.name);
+    setProductDescription(listing.description);
+    setPrice(listing.price.toString());
+    setQuantity(listing.quantity.toString());
+    setEditMode(true);
+    setModalVisible(true);
+  };
+
+  const renderListings = (listings: Listing[]) => {
+    return listings.map((listing) => (
+      <View key={listing.id} style={styles.listingCard}>
+        <Image
+          source={{ uri: listing.imageurl || "https://via.placeholder.com/80" }}
+          style={styles.listingImage}
+        />
+        <View style={styles.listingInfo}>
+          <Text style={styles.listingTitle}>{listing.name}</Text>
+          <Text style={styles.listingDescription}>
+            Description: {listing.description}
+          </Text>
+          <Text style={styles.listingDetails}>Price: ${listing.price}</Text>
+          <Text style={styles.listingDetails}>
+            Quantity: {listing.quantity}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => openEditModal(listing)}
+        >
+          <Icon name="edit" size={24} color="#2c5f2d" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => confirmDeleteListing(listing.id)}
+        >
+          <Icon name="trash" size={24} color="red" />
+        </TouchableOpacity>
+      </View>
+    ));
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Manage Listing</Text>
+      </View>
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "In Stock" && styles.activeTab]}
+          onPress={() => setActiveTab("In Stock")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "In Stock" && styles.activeTabText,
+            ]}
+          >
+            In Stock
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "Out Of Stock" && styles.activeTab]}
+          onPress={() => setActiveTab("Out Of Stock")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "Out Of Stock" && styles.activeTabText,
+            ]}
+          >
+            Out Of Stock
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <ScrollView>
+        <TouchableOpacity
+          style={styles.listingButton}
+          onPress={() => {
+            resetForm();
+            setModalVisible(true);
+          }}
+        >
+          <Text style={styles.listingButtonText}>Create Listing</Text>
+        </TouchableOpacity>
+        {activeTab === "In Stock"
+          ? renderListings(inStockListings)
+          : renderListings(outOfStockListings)}
+      </ScrollView>
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.footerButton}>
+          <Icon name="group" size={24} color="#2c5f2d" />
+          <Text style={styles.footerButtonText}>Manage Store</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.footerButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <Icon name="plus-square" size={24} color="#2c5f2d" />
+          <Text style={styles.footerButtonText}>Create Listing</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerButton}>
+          <Icon name="star" size={24} color="#2c5f2d" />
+          <Text style={styles.footerButtonText}>View Reviews</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerButton}>
+          <Icon name="shopping-cart" size={24} color="#2c5f2d" />
+          <Text style={styles.footerButtonText}>View Orders</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
+            <Button title="Pick a file" onPress={handleFileChange} />
+            {/* {selectedImage && (
+              <Image source={{ uri: selectedImage }} style={styles.image} />
+            )}
+            {selectedImage && (
+              <Text style={styles.fileName}>{selectedImage}</Text>
+            )} */}
+            <TextInput
+              style={styles.input}
+              placeholder="Product Name"
+              value={productName}
+              onChangeText={setProductName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Product Description"
+              value={productDescription}
+              onChangeText={setProductDescription}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Price ($)"
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Quantity"
+              value={quantity}
+              onChangeText={setQuantity}
+              keyboardType="numeric"
+            />
+            <TouchableOpacity
+              style={styles.updateButton}
+              onPress={editMode ? handleEditListing : handleCreateListing}
+            >
+              <Text style={styles.updateButtonText}>
+                {editMode ? "Save Changes" : "Create Listing"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={styles.cancelButton}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: "#F8F8F8",
   },
   header: {
     height: 60,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: '#DDDDDD',
+    borderBottomColor: "#DDDDDD",
   },
   headerText: {
     fontSize: 20,
-    color: '#2c5f2d',
-    fontWeight: 'bold',
+    color: "#2c5f2d",
+    fontWeight: "bold",
   },
   tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
     paddingVertical: 10,
   },
   tab: {
@@ -326,42 +522,42 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#2c5f2d',
+    borderBottomColor: "#2c5f2d",
   },
   tabText: {
     fontSize: 16,
-    color: '#888888',
+    color: "#888888",
   },
   activeTabText: {
-    color: '#2c5f2d',
-    fontWeight: 'bold',
+    color: "#2c5f2d",
+    fontWeight: "bold",
   },
   listingButton: {
     margin: 20,
     padding: 15,
-    backgroundColor: '#2c5f2d',
+    backgroundColor: "#2c5f2d",
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   listingButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   listingCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
     marginVertical: 10,
     padding: 10,
     borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    position: 'relative',
+    position: "relative",
   },
   listingImage: {
     width: 80,
@@ -374,99 +570,106 @@ const styles = StyleSheet.create({
   },
   listingTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
+    fontWeight: "bold",
+    color: "#333333",
   },
   listingDescription: {
-    color: '#777777',
+    color: "#777777",
     marginTop: 5,
   },
   listingDetails: {
-    color: '#333333',
+    color: "#333333",
     marginTop: 5,
   },
   editButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
   },
   deleteButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 10,
     right: 10,
   },
   footer: {
     height: 60,
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: '#DDDDDD',
+    borderTopColor: "#DDDDDD",
   },
   footerButton: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   footerButtonText: {
     fontSize: 12,
-    color: '#333333',
+    color: "#333333",
     marginTop: 5,
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
     width: 300,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 10,
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   uploadButton: {
-    backgroundColor: '#2c5f2d',
+    backgroundColor: "#2c5f2d",
     padding: 10,
     borderRadius: 5,
     marginBottom: 10,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   uploadButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
+    color: "#FFF",
+    fontWeight: "bold",
   },
   input: {
-    width: '100%',
+    width: "100%",
     borderBottomWidth: 1,
-    borderBottomColor: '#DDD',
+    borderBottomColor: "#DDD",
     paddingVertical: 10,
     marginBottom: 10,
   },
   updateButton: {
-    backgroundColor: '#2c5f2d',
+    backgroundColor: "#2c5f2d",
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   updateButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
+    color: "#FFF",
+    fontWeight: "bold",
   },
   cancelButton: {
-    backgroundColor: 'red',
+    backgroundColor: "red",
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   cancelButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
+    color: "#FFF",
+    fontWeight: "bold",
+  },
+  
+  imagePreview: {
+    width: 200,
+    height: 200,
+    resizeMode: 'contain',
+    marginTop: 20,
   },
 });
 
