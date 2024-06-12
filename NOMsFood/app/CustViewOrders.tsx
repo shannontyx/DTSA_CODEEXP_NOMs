@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getFirestore, collection, query, getDocs, getDoc, doc, where } from 'firebase/firestore';
+import { collection, query, getDocs, getDoc, doc, updateDoc, where } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 import { getAuth } from 'firebase/auth';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const CustViewOrders = () => {
   const [orders, setOrders] = useState<any[]>([]);
-  const [location, setLocation] = useState("");
   const [activeTab, setActiveTab] = useState<'In Progress' | 'Completed'>('In Progress');
   const navigation = useNavigation();
 
@@ -33,7 +32,7 @@ const CustViewOrders = () => {
           ordersSnapshot.docs.map(async (doc) => {
             const orderData = doc.data();
             const storeName = await fetchStoreName(orderData.storeId);
-            return { id: doc.id, ...orderData, storeName };
+            return { id: doc.id, ...orderData, storeName, storeId: orderData.storeId };
           })
         );
 
@@ -53,8 +52,6 @@ const CustViewOrders = () => {
       const storeDoc = await getDoc(doc(db, 'Stores', storeId));
       if (storeDoc.exists()) {
         const storeData = storeDoc.data();
-        console.log(storeData.locationString)
-        setLocation(storeData.locationString);
         return storeData.name || 'Unknown Store';
       } else {
         return 'Unknown Store';
@@ -66,7 +63,19 @@ const CustViewOrders = () => {
   };
 
   const handleViewDetails = (order: any) => {
-    navigation.navigate('OrderDetails', { order, storeName: order.storeName, location: location });
+    navigation.navigate('OrderDetails', { order, storeName: order.storeName, storeId: order.storeId });
+  };
+
+  const handleOrderReceived = async (orderId: string) => {
+    try {
+      const orderDocRef = doc(db, 'Order', orderId);
+      await updateDoc(orderDocRef, { orderStatus: 'Completed' });
+      Alert.alert('Success', 'Order has been collected!');
+      fetchOrders(); // Refresh orders after status update
+    } catch (error) {
+      console.error('Error updating order status: ', error);
+      Alert.alert('Error', 'There was an error updating the order status');
+    }
   };
 
   const filteredOrders = orders.filter(order => {
@@ -77,7 +86,9 @@ const CustViewOrders = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headText}>Orders</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>View Your Orders</Text>
+      </View>
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'In Progress' && styles.activeTab]}
@@ -103,6 +114,12 @@ const CustViewOrders = () => {
               <TouchableOpacity onPress={() => handleViewDetails(order)}>
                 <Text style={styles.detailsLink}>View Details</Text>
               </TouchableOpacity>
+              {order.orderStatus === 'In Progress' && (
+                <TouchableOpacity style={styles.receivedButton} onPress={() => handleOrderReceived(order.id)}>
+                  <Icon name="check-circle" size={24} color="#2c5f2d" />
+                  <Text style={styles.receivedButtonText}>Indicate Order Received</Text>
+                </TouchableOpacity>
+              )}
             </View>
           ))
         ) : (
@@ -110,26 +127,25 @@ const CustViewOrders = () => {
         )}
       </ScrollView>
       <View style={styles.footer}>
-    <TouchableOpacity
-  style={styles.footerButton}
-  onPress={() => navigation.navigate('Homepage')}
->
-  <Icon name="home" size={24} color="#2c5f2d" />
-  <Text style={styles.footerButtonText}>Home Page</Text>
-</TouchableOpacity>
-<TouchableOpacity
-  style={styles.footerButton}
-  // onPress={() => navigation.navigate('CustViewOrders')}
->
-  <Icon name="file" size={24} color="#2c5f2d" />
-  <Text style={styles.footerButtonText}>Orders</Text>
-</TouchableOpacity>
-<TouchableOpacity style={styles.footerButton}
-onPress={() => navigation.navigate('Profile')}>
-  <Icon name="group" size={24} color="#2c5f2d" />
-  <Text style={styles.footerButtonText}>Account</Text>
-</TouchableOpacity>
-</View>
+        <TouchableOpacity
+          style={styles.footerButton}
+          onPress={() => navigation.navigate('Homepage')}
+        >
+          <Icon name="home" size={24} color="#2c5f2d" />
+          <Text style={styles.footerButtonText}>Home Page</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerButton}>
+          <Icon name="file" size={24} color="#2c5f2d" />
+          <Text style={styles.footerButtonText}>Orders</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.footerButton}
+          onPress={() => navigation.navigate('Profile')}
+        >
+          <Icon name="group" size={24} color="#2c5f2d" />
+          <Text style={styles.footerButtonText}>Account</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -138,7 +154,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
-    padding:0, 
+    padding: 0,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -185,7 +201,6 @@ const styles = StyleSheet.create({
   },
   orderId: {
     fontWeight: 'bold',
-    textDecorationLine: 'underline',
   },
   bold: {
     fontWeight: 'bold',
@@ -200,27 +215,53 @@ const styles = StyleSheet.create({
     color: 'blue',
     textDecorationLine: 'underline',
   },
+  receivedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  receivedButtonText: {
+    marginLeft: 5,
+    color: '#2c5f2d',
+    fontWeight: 'bold',
+  },
   noOrdersText: {
     textAlign: 'center',
     marginTop: 20,
   },
   footer: {
     height: 60,
-    backgroundColor: "#FFFFFF",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: "#DDDDDD",
+    borderTopColor: '#DDDDDD',
   },
   footerButton: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   footerButtonText: {
     fontSize: 12,
-    color: "#333333",
+    color: '#333333',
     marginTop: 5,
   },
+
+  header: {
+    height: 60,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 33,
+    borderBottomWidth: 1,
+    borderBottomColor: "#DDDDDD",
+  },
+  headerText: {
+    fontSize: 20,
+    color: "#2c5f2d",
+    fontWeight: "bold",
+  },
+
 });
 
 export default CustViewOrders;

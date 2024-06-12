@@ -102,7 +102,7 @@ const EditProfile: React.FC = () => {
     return (
         <View style={styles.container}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Text style={styles.backButton}>Back</Text>
+                <Text style={styles.backButton}></Text>
             </TouchableOpacity>
             <View style={styles.profileContainer}>
                 <Icon name="user-circle" size={100} color="#000" />
