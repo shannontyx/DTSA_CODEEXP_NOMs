@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db } from '../firebase/firebaseConfig';
@@ -17,8 +17,6 @@ const CartScreen = () => {
   const total = subtotal - goGreenDiscount;
 
   useEffect(() => {
-    // Load cart items from storage on component mount
-    console.log(orderedStoreId);
     loadCart();
     fetchStoreDetails();
   }, []);
@@ -32,8 +30,7 @@ const CartScreen = () => {
     } catch (error) {
       console.error('Error loading cart:', error);
     }
-
-  }
+  };
 
   const fetchStoreDetails = async () => {
     try {
@@ -60,31 +57,30 @@ const CartScreen = () => {
   };
 
   const increaseQuantity = (index) => {
-    // Increase item quantity by 1
     const updatedCartItems = [...cartItems];
     const newCartQuantity = updatedCartItems[index].cartQuantity + 1;
-    if (newCartQuantity < updatedCartItems[index].quantity) {
+    if (newCartQuantity <= updatedCartItems[index].quantity) {
       updatedCartItems[index].cartQuantity = newCartQuantity;
+      setCartItems(updatedCartItems);
+      saveCart(updatedCartItems);
     }
-    setCartItems(updatedCartItems);
-    saveCart(updatedCartItems);
   };
 
   const decreaseQuantity = (index) => {
-    // Decrease item quantity by 1, minimum quantity is 1
     const updatedCartItems = [...cartItems];
-    const newCartQuantity = updatedCartItems[index].cartQuantity - 1
+    const newCartQuantity = updatedCartItems[index].cartQuantity - 1;
     if (newCartQuantity > 0) {
       updatedCartItems[index].cartQuantity = newCartQuantity;
+      setCartItems(updatedCartItems);
+      saveCart(updatedCartItems);
     } else {
       updatedCartItems.splice(index, 1);
+      setCartItems(updatedCartItems);
+      saveCart(updatedCartItems);
     }
-    setCartItems(updatedCartItems);
-    saveCart(updatedCartItems);
   };
 
   const handleCheckout = () => {
-    // Navigate to checkout screen
     navigation.navigate('CheckoutScreen', { orderedStoreId: orderedStoreId });
   };
 
@@ -97,45 +93,51 @@ const CartScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.header}>Your Cart</Text>
-      {cartItems.map((item, index) => (
-        <View key={index} style={styles.cartItem}>
-          <Image source={item.image} style={styles.itemImage} />
-          <View style={styles.itemDetails}>
-            <Text style={styles.itemName}>{item.name}</Text>
-            <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+      <View style={styles.card}>
+        {cartItems.map((item, index) => (
+          <View key={index}>
+            <View style={styles.cartItem}>
+              <Image source={{ uri: item.imageurl || 'https://via.placeholder.com/60' }} style={styles.itemImage} />
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemName}>{item.name}</Text>
+                <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+              </View>
+              <View style={styles.quantityButtons}>
+                <TouchableOpacity onPress={() => decreaseQuantity(index)} style={styles.quantityButton}>
+                  <Text style={styles.quantityButtonText}>-</Text>
+                </TouchableOpacity>
+                <Text style={styles.itemQuantity}>{item.cartQuantity}</Text>
+                <TouchableOpacity onPress={() => increaseQuantity(index)} style={styles.quantityButton}>
+                  <Text style={styles.quantityButtonText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            {index < cartItems.length - 1 && <View style={styles.divider} />}
           </View>
-          <View style={styles.quantityButtons}>
-            <TouchableOpacity onPress={() => increaseQuantity(index)} style={styles.quantityButton}>
-              <Text style={styles.quantityButtonText}>+</Text>
-            </TouchableOpacity>
-            <Text style={styles.itemQuantity}>{item.cartQuantity}</Text>
-            <TouchableOpacity onPress={() => decreaseQuantity(index)} style={styles.quantityButton}>
-              <Text style={styles.quantityButtonText}>-</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
-      <View style={styles.divider} />
-      <View style={styles.checkboxContainer}>
-        <TouchableOpacity onPress={handleBringOwnContainerToggle} style={styles.checkbox}>
-          {bringOwnContainer && <View style={styles.checkedBox} />}
-        </TouchableOpacity>
-        <Text style={styles.checkboxLabel}>Bring your own container</Text>
+        ))}
       </View>
-      <View style={styles.summaryContainer}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryText}>Subtotal</Text>
-          <Text style={styles.summaryText}>${subtotal.toFixed(2)}</Text>
+      <View style={styles.card}>
+        <View style={styles.checkboxContainer}>
+          <TouchableOpacity onPress={handleBringOwnContainerToggle} style={styles.checkbox}>
+            {bringOwnContainer && <View style={styles.checkedBox} />}
+          </TouchableOpacity>
+          <Text style={styles.checkboxLabel}>Bring your own container</Text>
         </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryText}>Go Green Discount</Text>
-          <Text style={styles.summaryText}> {(bringOwnContainer && cartItems.length > 0) ? '-$' + goGreenDiscount.toFixed(2) : "$0.00"}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.totalText}>Total</Text>
-          <Text style={styles.totalText}>${applyDiscount(subtotal).toFixed(2)}</Text>
+        <View style={styles.summaryContainer}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryText}>Subtotal</Text>
+            <Text style={styles.summaryText}>${subtotal.toFixed(2)}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryText}>Go Green Discount</Text>
+            <Text style={styles.summaryText}>{(bringOwnContainer && cartItems.length > 0) ? '-$' + goGreenDiscount.toFixed(2) : "$0.00"}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.totalText}>Total</Text>
+            <Text style={styles.totalText}>${applyDiscount(subtotal).toFixed(2)}</Text>
+          </View>
         </View>
       </View>
       <TouchableOpacity
@@ -143,15 +145,15 @@ const CartScreen = () => {
         onPress={handleCheckout}
         disabled={cartItems.length === 0}
       >
-        <Text style={styles.paymentButtonText}>Checkout Cart Screen</Text>
+        <Text style={styles.paymentButtonText}>Checkout</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#F5F5F5',
     padding: 10,
   },
@@ -162,15 +164,19 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     color: '#3E5902',
   },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#DDD',
+  },
   cartItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    padding: 10,
-    borderRadius: 5,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: '#DDD',
+    paddingVertical: 10,
   },
   itemImage: {
     width: 60,
@@ -180,6 +186,7 @@ const styles = StyleSheet.create({
   },
   itemDetails: {
     flex: 1,
+    justifyContent: 'center',
   },
   itemName: {
     fontSize: 18,
@@ -191,17 +198,16 @@ const styles = StyleSheet.create({
   },
   quantityButtons: {
     flexDirection: 'row',
-    marginRight: 10,
+    alignItems: 'center',
   },
   quantityButton: {
     backgroundColor: '#3E5902',
     borderRadius: 5,
-    padding: 5, // Adjust padding to make the buttons larger
-    marginRight: 5,
-    marginLeft: 5,
-    width: 30, // Fixed width for all buttons
-    justifyContent: 'center', // Center button content vertically
-    alignItems: 'center', // Center button content horizontally
+    padding: 5,
+    marginHorizontal: 5,
+    width: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   quantityButtonText: {
     color: '#FFF',
@@ -211,19 +217,39 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#3E5902',
-    marginHorizontal: 5,
+    marginHorizontal: 10,
   },
   divider: {
     height: 1,
     backgroundColor: '#CCC',
-    marginVertical: 20,
+    marginVertical: 10,
   },
-  summaryContainer: {
-    backgroundColor: '#FFF',
-    padding: 10,
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: '#CCC',
+    borderColor: '#3E5902',
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkedBox: {
+    width: 14,
+    height: 14,
+    backgroundColor: '#3E5902',
+    borderRadius: 3,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+  },
+  summaryContainer: {
+    padding: 10,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -250,40 +276,6 @@ const styles = StyleSheet.create({
   },
   paymentButtonDisabled: {
     backgroundColor: 'gray',
-  },
-  removeItemButton: {
-    backgroundColor: 'red',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-  },
-  removeItemButtonText: {
-    color: '#FFF',
-    fontSize: 14,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#3E5902',
-    marginRight: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkedBox: {
-    width: 14,
-    height: 14,
-    backgroundColor: '#3E5902',
-    borderRadius: 3,
-  },
-  checkboxLabel: {
-    fontSize: 16,
   },
 });
 

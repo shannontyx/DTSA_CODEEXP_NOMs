@@ -21,17 +21,19 @@ const HomeScreen = () => {
     { name: 'Duck', image: require('../../assets/images/wafflesia.png') },
   ];
   const pastOrders = [
-    
+
   ];
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.searchBarContainer}>
-        <Icon name="search" size={20} color="#000" />
-        <TextInput placeholder="Search Store..." style={styles.searchBar} />
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Icon name="user" size={24} color="#000" style={styles.userIcon} />
-        </TouchableOpacity>
+      <View style={styles.topContainer}>
+        <View style={styles.searchBarContainer}>
+          <Icon name="search" size={20} color="#000" />
+          <TextInput placeholder="Search Store..." style={styles.searchBar} />
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <Icon name="user" size={24} color="#000" style={styles.userIcon} />
+          </TouchableOpacity>
+        </View>
       </View>
       <TouchableOpacity 
         style={styles.browseStoresButton} 
@@ -92,24 +94,27 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-    padding: 10,
+ 
+  topContainer: {
+    backgroundColor: '#2c5f2d', // Dark green background color for the top part
+    paddingBottom: 10, 
+    height: 120,// Padding to provide space below the search bar
+
   },
   searchBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFFFFF', // Reverted search bar to original color
     borderRadius: 5,
     padding: 10,
-    marginTop: 20,
-    marginBottom: 10,
+    marginHorizontal: 20, // Added horizontal margin for spacing
+    marginTop: 60, // Added margin top to separate from top container
   },
   searchBar: {
     flex: 1,
     marginLeft: 10,
     fontSize: 16,
+    color: '#000', // Reverted text color to black
   },
   userIcon: {
     marginLeft: 10,
