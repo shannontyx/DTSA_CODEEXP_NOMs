@@ -15,6 +15,7 @@ import StoreDetailsPage from './StoreDetailsPage';
 import ManageListing from './ManageListing';
 import StoresCategories from './StoresCategories';
 import CustViewOrders from './CustViewOrders';
+import ChatScreen from './(tabs)/ChatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +37,7 @@ const AppNavigator = () => {
         <Stack.Screen name="StoresCategories" component={StoresCategories} />
         <Stack.Screen name="ManageListing" component={ManageListing} />
         <Stack.Screen name="CustViewOrders" component={CustViewOrders} />
+        <Stack.Screen name="ChatScreen" component={ChatScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
