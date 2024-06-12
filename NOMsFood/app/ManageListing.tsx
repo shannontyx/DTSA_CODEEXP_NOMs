@@ -218,7 +218,10 @@ const ManageListing = () => {
                 </TouchableOpacity>
             </View>
             <ScrollView>
-                <TouchableOpacity style={styles.listingButton} onPress={() => setModalVisible(true)}>
+                <TouchableOpacity style={styles.listingButton} onPress={() => 
+                  { resetForm();
+                    setModalVisible(true);
+                    }}>
                     <Text style={styles.listingButtonText}>Create Listing</Text>
                 </TouchableOpacity>
                 {activeTab === 'In Stock' ? renderListings(inStockListings) : renderListings(outOfStockListings)}
