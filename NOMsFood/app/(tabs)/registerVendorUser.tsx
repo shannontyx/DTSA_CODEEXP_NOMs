@@ -53,7 +53,7 @@ const registerVendorUser: React.FC = () => {
   };
 
   const handleBackPress = () => {
-    navigation.goBack();
+    navigation.navigate('index');
   };
 
   const handleNewUser = async (ProfileData: Profile) => {
@@ -100,7 +100,7 @@ const registerVendorUser: React.FC = () => {
         console.log(userLoggedIn);
         if (userLoggedIn && !registering) {
           console.log("navigate to create store");
-          navigation.navigate('CreateStore', { replace: true });
+          navigation.navigate('CreateStore');
         }
       } catch (error) {
         console.error('Error handling user profile:', error);
@@ -120,6 +120,7 @@ const registerVendorUser: React.FC = () => {
           style={[styles.logo]}
         />
       <View style={styles.formContainer}>
+        <Text style={styles.headerText}>Vendor Registration</Text>
         <TextInput
           style={styles.input}
           placeholder="Email address"
@@ -182,14 +183,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerText: {
+    fontSize: 20,
+    color: "#2c5f2d",
+    fontWeight: "bold",
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
   backButton: {
     position: 'absolute',
-    top: 20,
+    top: 60,
     left: 16,
     zIndex: 1, // Ensure the back button is above other content
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   input: {
