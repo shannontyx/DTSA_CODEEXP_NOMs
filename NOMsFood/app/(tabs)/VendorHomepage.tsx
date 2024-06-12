@@ -19,7 +19,9 @@ const VendorHomepage = () => {
       <Text style={styles.greeting}>Good Day VendorName,</Text>
       <Text style={styles.subGreeting}>What would you like to do today?</Text>
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => navigation.navigate('ManageStore')}>
           <Icon name="home" size={40} color="#2c5f2d" />
           <Text style={styles.buttonText}>Manage Store</Text>
         </TouchableOpacity>

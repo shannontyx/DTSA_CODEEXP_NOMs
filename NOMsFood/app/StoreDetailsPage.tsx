@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Dimensions, TouchableOpacity } from 'react-native';
 import { db } from '../firebase/firebaseConfig';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { height, width } = Dimensions.get('window');
 
@@ -27,18 +28,24 @@ interface Listing {
   userId: string;
 }
 
+interface CartItem extends Listing {
+  cartQuantity: number;
+}
+
 const StoreDetailsPage: React.FC = () => {
   const route = useRoute();
+  const navigation = useNavigation();
   const { storeId } = route.params as { storeId: string };
   const [store, setStore] = useState<Store | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
+  const [cart, setCart] = useState<Listing[]>([]);
 
   useEffect(() => {
     const fetchStoreDetails = async () => {
       try {
         const storeDoc = doc(db, 'Stores', storeId);
         const storeSnapshot = await getDoc(storeDoc);
-        
+
         if (storeSnapshot.exists()) {
           const storeData = storeSnapshot.data() as Store;
           setStore({ storeId: storeSnapshot.id, ...storeData });
@@ -64,17 +71,63 @@ const StoreDetailsPage: React.FC = () => {
       }
     };
 
+    const loadCart = async () => {
+      try {
+        const savedCart = await AsyncStorage.getItem(storeId);
+        if (savedCart) {
+          setCart(JSON.parse(savedCart));
+        }
+      } catch (error) {
+        console.error('Error loading cart:', error);
+      }
+    };
+
     fetchStoreDetails();
     fetchListings();
+    loadCart();
   }, [storeId]);
+
+  useEffect(() => {
+    const saveCart = async () => {
+      try {
+        await AsyncStorage.setItem(storeId, JSON.stringify(cart));
+      } catch (error) {
+        console.error('Error saving cart:', error);
+      }
+    };
+
+    saveCart();
+  }, [cart]);
 
   if (!store) {
     return <Text>Loading...</Text>;
   }
 
   const handleAddToCart = (listing: Listing) => {
-    // Handle adding to cart functionality here
-    console.log(`Added ${listing.name} to cart`);
+    if (listing.quantity > 0) {
+      setCart((prevCart) => {
+        const existingItem = prevCart.find(item => item.name === listing.name);
+        if (existingItem) {
+          return prevCart.map(item =>
+            item.name === listing.name ? { ...item, cartQuantity: item.cartQuantity + 1 } : item
+          );
+        } else {
+          return [...prevCart, { ...listing, cartQuantity: 1 }];
+        }
+      });
+      console.log(`Added ${listing.name} to cart`);
+    } else {
+      console.log(`${listing.name} is out of stock`);
+    }
+  };
+
+  const getCartQuantity = (listingName: string) => {
+    const item = cart.find(cartItem => cartItem.name === listingName);
+    return item ? item.cartQuantity : 0;
+  };
+
+  const handleCheckout = () => {
+    navigation.navigate('CartScreen', { orderedStoreId: storeId });
   };
 
   return (
@@ -95,9 +148,8 @@ const StoreDetailsPage: React.FC = () => {
           </View>
           <View style={styles.detailRow}>
             <FontAwesome name="star" size={24} color="green" />
-            <Text style={styles.details}>Best Chicken Rice in Town</Text>
+            <Text style={styles.details}>{store.description}</Text>
           </View>
-          <Text style={styles.promotionText}>Bring your own container for $1 Discount!</Text>
         </View>
       </View>
 
@@ -110,13 +162,29 @@ const StoreDetailsPage: React.FC = () => {
                 <Text style={styles.listingName}>{listing.name}</Text>
                 <Text style={styles.listingDescription}>{listing.description}</Text>
                 <Text style={styles.listingPrice}>${listing.price.toFixed(2)}</Text>
+                <Text style={styles.cartQuantityText}>
+                  Added: {getCartQuantity(listing.name) || 0}
+                </Text>
               </View>
-              <TouchableOpacity onPress={() => handleAddToCart(listing)} style={styles.addButton}>
-                <MaterialIcons name="add" size={16} color="#fff" />
+              
+              <TouchableOpacity
+                onPress={() => handleAddToCart(listing)}
+                style={[
+                  styles.addButton,
+                  (listing.quantity === 0 || getCartQuantity(listing.name) >= listing.quantity) && styles.addButtonDisabled
+                ]}
+                disabled={listing.quantity === 0 || getCartQuantity(listing.name) >= listing.quantity}
+              >
+                <MaterialIcons name="add" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
           ))}
         </View>
+        {cart.length > 0 && (
+          <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
+            <Text style={styles.checkoutButtonText}>Checkout</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );
@@ -219,14 +287,37 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   addButton: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
     backgroundColor: 'darkgreen',
     borderRadius: 20,
-    padding: 5,
+    padding: 10, // Increased padding
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'absolute',
+    bottom: 10,
+    left: '50%',
+    transform: [{ translateX: -10}], // Centering the button horizontally
+  },
+  addButtonDisabled: {
+    backgroundColor: 'grey',
+  },
+  cartQuantityText: {
+    fontSize: 14,
+    color: '#777',
+    textAlign: 'center',
+    marginTop: 5,
+    marginBottom: 50,
+  },
+  checkoutButton: {
+    backgroundColor: 'green',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  checkoutButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

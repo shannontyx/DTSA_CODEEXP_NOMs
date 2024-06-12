@@ -4,6 +4,7 @@ import { db } from '../firebase/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
+import moment from 'moment';
 
 const AllStores = () => {
   const navigation = useNavigation();
@@ -16,7 +17,14 @@ const AllStores = () => {
       try {
         const storesCollection = collection(db, 'Stores');
         const storesSnapshot = await getDocs(storesCollection);
-        const storesList = storesSnapshot.docs.map(doc => ({ storeId: doc.id, ...doc.data() }));
+        const storesList = storesSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            storeId: doc.id,
+            ...data,
+            isOpen: isStoreOpen(data.opening, data.closing),
+          };
+        });
         setStores(storesList);
         setFilteredStores(storesList);
       } catch (error) {
@@ -39,44 +47,62 @@ const AllStores = () => {
     }
   }, [searchQuery, stores]);
 
+  const isStoreOpen = (opening, closing) => {
+    const currentTime = moment();
+    const openingTime = moment(opening, "HH:mm");
+    const closingTime = moment(closing, "HH:mm");
+
+    if (closingTime.isBefore(openingTime)) {
+      // Handles cases where stores close after midnight
+      return currentTime.isBetween(openingTime, moment("23:59", "HH:mm")) ||
+        currentTime.isBetween(moment("00:00", "HH:mm"), closingTime);
+    } else {
+      return currentTime.isBetween(openingTime, closingTime);
+    }
+  };
+
   const renderItem = ({ item }) => (
-    <View style={styles.storeContainer}>
-      <Image source={require('./../assets/images/storeDisplay.png')} style={styles.storeImage} />
-      <View style={styles.storeDetails}>
+  <View style={[styles.storeContainer, !item.isOpen && styles.closedStore]}>
+    <Image source={require('./../assets/images/storeDisplay.png')} style={styles.storeImage} />
+    <View style={styles.storeDetails}>
+      {item.isOpen ? (
         <TouchableOpacity onPress={() => navigation.navigate('StoreDetailsPage', { storeId: item.storeId })}>
           <Text style={styles.storeName}>{item.name}</Text>
         </TouchableOpacity>
-        <View style={styles.storeInfo}>
-          <Icon name="clock-o" size={16} color="#000" />
-          <Text style={styles.storeText}> Opening: {item.opening} - Closing: {item.closing}</Text>
-        </View>
-        <View style={styles.storeInfo}>
-          <Icon name="map-marker" size={16} color="#000" />
-          <Text style={styles.storeText}>{item.location}</Text>
-        </View>
-        <View style={styles.storeInfo}>
-          <Icon name="info-circle" size={16} color="#000" />
-          <Text style={styles.storeText}>{item.description}</Text>
-        </View>
+      ) : (
+        <Text style={styles.storeName}>{item.name}</Text>
+      )}
+      <View style={styles.storeInfo}>
+        <Icon name="clock-o" size={16} color="#000" />
+        <Text style={styles.storeText}> Opening: {item.opening} - Closing: {item.closing}</Text>
+      </View>
+      <View style={styles.storeInfo}>
+        <Icon name="map-marker" size={16} color="#000" />
+        <Text style={styles.storeText}>{item.location}</Text>
+      </View>
+      <View style={styles.storeInfo}>
+        <Icon name="info-circle" size={16} color="#000" />
+        <Text style={styles.storeText}>{item.description}</Text>
       </View>
     </View>
+  </View>
   );
 
-  return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Enter your location to sort by distance..."
-        value={searchQuery}
-        onChangeText={text => setSearchQuery(text)}
-      />
-      <FlatList
-        data={filteredStores}
-        keyExtractor={(item) => item.storeId}
-        renderItem={renderItem}
-      />
-    </View>
-  );
+return (
+  <View style={styles.container}>
+    <TextInput
+      style={styles.searchBar}
+      placeholder="Enter your location to sort by distance..."
+      value={searchQuery}
+      onChangeText={text => setSearchQuery(text)}
+    />
+    <FlatList
+      data={filteredStores}
+      keyExtractor={(item) => item.storeId}
+      renderItem={renderItem}
+    />
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
@@ -101,6 +127,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     elevation: 3, // Slightly increased elevation for a subtle shadow effect
+  },
+  closedStore: {
+    backgroundColor: '#d3d3d3',
   },
   storeImage: {
     width: '100%',
