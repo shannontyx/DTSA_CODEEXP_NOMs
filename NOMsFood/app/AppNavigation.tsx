@@ -13,6 +13,7 @@ import ViewStore from './(tabs)/ViewStore';
 import viewReviews from './(tabs)/viewReviews';
 import StoreDetailsPage from './StoreDetailsPage';
 import ManageListing from './ManageListing';
+import StoresCategories from './StoresCategories';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,6 +32,7 @@ const AppNavigator = () => {
         <Stack.Screen name="ViewStore" component={ViewStore} />
         <Stack.Screen name="viewReviews" component={viewReviews} />
         <Stack.Screen name="StoreDetailsPage" component={StoreDetailsPage} />
+        <Stack.Screen name="StoresCategories" component={StoresCategories} />
         <Stack.Screen name="ManageListing" component={ManageListing} />
       </Stack.Navigator>
     </NavigationContainer>

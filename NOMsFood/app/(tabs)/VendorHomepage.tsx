@@ -4,7 +4,6 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 
 const VendorHomepage = () => {
-
   const navigation = useNavigation();
 
   const handleIconPress = () => {
@@ -15,7 +14,7 @@ const VendorHomepage = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Image source={require('../../assets/images/noms2.png')} style={styles.logo} />
-        <Icon name="user" size={24} color="#000" style={styles.userIcon} onPress={handleIconPress}/>
+        <Icon name="user" size={24} color="#000" style={styles.userIcon} onPress={handleIconPress} />
       </View>
       <Text style={styles.greeting}>Good Day VendorName,</Text>
       <Text style={styles.subGreeting}>What would you like to do today?</Text>
@@ -23,19 +22,19 @@ const VendorHomepage = () => {
         <TouchableOpacity 
           style={styles.button}
           onPress={() => navigation.navigate('ManageStore')}>
-          <Icon name="home" size={40} color="#6B8E23" />
+          <Icon name="home" size={40} color="#2c5f2d" />
           <Text style={styles.buttonText}>Manage Store</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ManageListing')}>
-          <Icon name="cutlery" size={40} color="#6B8E23" />
+          <Icon name="cutlery" size={40} color="#2c5f2d" />
           <Text style={styles.buttonText}>Manage Listing</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('viewReviews')}>
-          <Icon name="star" size={40} color="#6B8E23" />
+          <Icon name="star" size={40} color="#2c5f2d" />
           <Text style={styles.buttonText}>View Reviews</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button}>
-          <Icon name="shopping-cart" size={40} color="#6B8E23" />
+          <Icon name="shopping-cart" size={40} color="#2c5f2d" />
           <Text style={styles.buttonText}>View Orders</Text>
         </TouchableOpacity>
       </View>
@@ -63,7 +62,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 0,
+    marginBottom: 10,
     position: 'relative',
   },
   logo: {
@@ -77,13 +76,15 @@ const styles = StyleSheet.create({
     top: 30,
   },
   greeting: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 5,
+    color: '#333',
   },
   subGreeting: {
     fontSize: 16,
     marginBottom: 20,
+    color: '#666',
   },
   buttonsContainer: {
     flexDirection: 'row',
@@ -97,18 +98,28 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     marginBottom: 20,
-    elevation: 2,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   buttonText: {
     fontSize: 16,
     marginTop: 10,
     textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#333',
   },
   greenSection: {
     backgroundColor: '#FFF',
     borderRadius: 10,
     overflow: 'hidden',
-    elevation: 2,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   greenImage: {
     width: '100%',
@@ -122,13 +133,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#2c5f2d',
   },
   greenSubtitle: {
     fontSize: 14,
     marginBottom: 20,
+    color: '#666',
   },
   upgradeButton: {
-    backgroundColor: '#6B8E23',
+    backgroundColor: '#2c5f2d',
     borderRadius: 5,
     padding: 10,
     alignItems: 'center',
@@ -136,6 +149,7 @@ const styles = StyleSheet.create({
   upgradeButtonText: {
     color: '#FFF',
     fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
