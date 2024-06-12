@@ -53,7 +53,7 @@ const registerCustomerUser: React.FC = () => {
   };
 
   const handleBackPress = () => {
-    navigation.goBack();
+    navigation.navigate('index');
   };
 
   const handleNewUser = async (ProfileData: Profile) => {
@@ -109,13 +109,16 @@ const registerCustomerUser: React.FC = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-        <Text style={styles.backButtonText}>{'< Back'}</Text>
+        <Text style={styles.backButtonText}
+        
+        >{'< Back'}</Text>
       </TouchableOpacity>
       <Image
           source={require('../../assets/images/nomsicon.png')}
           style={[styles.logo]}
         />
       <View style={styles.formContainer}>
+      <Text style={styles.headerText}>Customer Registration</Text>
         <TextInput
           style={styles.input}
           placeholder="Email address"
@@ -176,14 +179,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerText: {
+    fontSize: 20,
+    color: "#2c5f2d",
+    fontWeight: "bold",
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
   backButton: {
     position: 'absolute',
-    top: 20,
+    top: 60,
     left: 16,
     zIndex: 1, // Ensure the back button is above other content
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   input: {
@@ -192,6 +204,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderColor: 'gray',
     borderWidth: 1,
+    placeholderTextColor: 'darkgray', 
   },
   button: {
     backgroundColor: '#10390A',
