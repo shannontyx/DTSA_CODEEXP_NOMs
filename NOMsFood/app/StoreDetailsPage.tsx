@@ -75,7 +75,7 @@ const StoreDetailsPage: React.FC = () => {
       try {
         const savedCart = await AsyncStorage.getItem('cart');
         if (savedCart) {
-          setCart(JSON.parse(savedCart));
+          //setCart(JSON.parse(savedCart));
         }
       } catch (error) {
         console.error('Error loading cart:', error);
@@ -148,14 +148,12 @@ const StoreDetailsPage: React.FC = () => {
           </View>
           <View style={styles.detailRow}>
             <FontAwesome name="star" size={24} color="green" />
-            <Text style={styles.details}>Best Chicken Rice in Town</Text>
+            <Text style={styles.details}>{store.description}</Text>
           </View>
-          <Text style={styles.promotionText}>Bring your own container for $1 Discount!</Text>
         </View>
       </View>
 
       <View style={styles.listingsContainer}>
-        <Text style={styles.cartCount}>Cart Items: {cart.length}</Text>
         <View style={styles.listingsGrid}>
           {listings.map((listing, index) => (
             <View key={index} style={styles.listingCard}>
@@ -164,8 +162,11 @@ const StoreDetailsPage: React.FC = () => {
                 <Text style={styles.listingName}>{listing.name}</Text>
                 <Text style={styles.listingDescription}>{listing.description}</Text>
                 <Text style={styles.listingPrice}>${listing.price.toFixed(2)}</Text>
-                <Text style={styles.listingQuantity}>In Stock: {listing.quantity}</Text>
+                <Text style={styles.cartQuantityText}>
+                  Added: {getCartQuantity(listing.name) || 0}
+                </Text>
               </View>
+              
               <TouchableOpacity
                 onPress={() => handleAddToCart(listing)}
                 style={[
@@ -174,11 +175,8 @@ const StoreDetailsPage: React.FC = () => {
                 ]}
                 disabled={listing.quantity === 0 || getCartQuantity(listing.name) >= listing.quantity}
               >
-                <MaterialIcons name="add" size={16} color="#fff" />
+                <MaterialIcons name="add" size={24} color="#fff" />
               </TouchableOpacity>
-              <Text style={styles.cartQuantityText}>
-                Added: {getCartQuantity(listing.name) || 0}
-              </Text>
             </View>
           ))}
         </View>
@@ -289,14 +287,15 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   addButton: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
     backgroundColor: 'darkgreen',
     borderRadius: 20,
-    padding: 5,
+    padding: 10, // Increased padding
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'absolute',
+    bottom: 10,
+    left: '50%',
+    transform: [{ translateX: -10}], // Centering the button horizontally
   },
   addButtonDisabled: {
     backgroundColor: 'grey',
@@ -306,6 +305,7 @@ const styles = StyleSheet.create({
     color: '#777',
     textAlign: 'center',
     marginTop: 5,
+    marginBottom: 50,
   },
   checkoutButton: {
     backgroundColor: 'green',

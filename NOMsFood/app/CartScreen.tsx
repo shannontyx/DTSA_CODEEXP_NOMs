@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CartScreen = () => {
   const navigation = useNavigation();
@@ -11,11 +12,20 @@ const CartScreen = () => {
 
   useEffect(() => {
     // Load cart items from storage on component mount
-    const storedCartItems = sessionStorage.getItem('cartItems');
-    if (storedCartItems) {
-      setCartItems(JSON.parse(storedCartItems));
-    }
+    loadCart();
   }, []);
+
+  const loadCart = async () => {
+    try {
+      const savedCart = await AsyncStorage.getItem('cartItems');
+      if (savedCart) {
+        setCartItems(JSON.parse(savedCart));
+      }
+    } catch (error) {
+      console.error('Error loading cart:', error);
+    }
+    
+  }
 
   const removeItem = (index) => {
     // Remove item from cart
