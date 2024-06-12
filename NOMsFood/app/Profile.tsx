@@ -12,7 +12,6 @@ const EditProfile: React.FC = () => {
         name: '',
         username: '',
         contact: '',
-        type: '',
     });
     const authContext = useAuth();
     const { userLoggedIn, currentUserEmail } = authContext || {};
@@ -80,8 +79,9 @@ const EditProfile: React.FC = () => {
 
                 // Update the user document
                 await updateDoc(userDocRef, {
+                    name: formData.name,
+                    username: formData.username,
                     contact: formData.contact,
-                    type: formData.type,
                 });
                 console.log('Profile updated successfully');
                 setEditMode(false);
@@ -104,7 +104,16 @@ const EditProfile: React.FC = () => {
                 <TouchableOpacity style={styles.editIcon} onPress={handleToggleEditMode}>
                     <Icon name="edit" size={30} color="#2c5f2d" />
                 </TouchableOpacity>
-                <Text style={styles.name}>{formData.name}</Text>
+                {editMode ? (
+                    <TextInput
+                        style={styles.nameInput}
+                        value={formData.name}
+                        onChangeText={(value) => handleInputChange('name', value)}
+                        placeholder="Name"
+                    />
+                ) : (
+                    <Text style={styles.name}>{formData.name}</Text>
+                )}
                 <Text style={styles.username}>@{formData.username}</Text>
             </View>
             <View style={styles.separator} />
@@ -122,16 +131,16 @@ const EditProfile: React.FC = () => {
                 ) : (
                     <Text style={styles.detailText}>{formData.contact}</Text>
                 )}
-                <Text style={styles.detailLabel}>Type:</Text>
+                <Text style={styles.detailLabel}>Username:</Text>
                 {editMode ? (
                     <TextInput
                         style={styles.input}
-                        value={formData.type}
-                        onChangeText={(value) => handleInputChange('type', value)}
-                        placeholder="Type"
+                        value={formData.username}
+                        onChangeText={(value) => handleInputChange('username', value)}
+                        placeholder="Username"
                     />
                 ) : (
-                    <Text style={styles.detailText}>{formData.type}</Text>
+                    <Text style={styles.detailText}>{formData.username}</Text>
                 )}
             </View>
             {editMode && (
@@ -178,6 +187,17 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#666',
         marginBottom: 20,
+    },
+    nameInput: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginTop: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+        paddingBottom: 5,
+        marginBottom: 20,
+        width: '80%',
+        textAlign: 'center',
     },
     separator: {
         width: '100%',
