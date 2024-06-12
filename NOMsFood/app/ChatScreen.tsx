@@ -104,6 +104,7 @@ const ChatScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F5F5F5',
     paddingTop: 20, // Shift down the chat screen slightly
   },
   chatContainer: {
