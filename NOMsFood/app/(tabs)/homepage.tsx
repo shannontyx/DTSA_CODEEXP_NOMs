@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../components/authContext'
-import { getAuth } from 'firebase/auth';
+
 const HomeScreen = () => {
   const navigation = useNavigation();
   const categories = [
@@ -22,12 +21,6 @@ const HomeScreen = () => {
     { name: 'Wafflesia', image: require('../../assets/images/wafflesia.png') },
   ];
 
-  // const pastOrders = [
-  //   { name: 'SaladStop!', image: require('../assets/images/saladstop.png') },
-  //   { name: 'Wafflesia', image: require('../assets/images/wafflesia.png') },
-  //   { name: 'Yumz!', image: require('../assets/images/yumz.png') },
-  // ];
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.searchBarContainer}>
@@ -35,18 +28,16 @@ const HomeScreen = () => {
         <TextInput placeholder="Search Store..." style={styles.searchBar} />
       </View>
       <TouchableOpacity 
-      style={styles.browseStoresButton} 
-      onPress={() => navigation.navigate('AllStores')}>
-        <Text 
-        style={styles.browseStoresText}>Browse All Stores
-        </Text>
+        style={styles.browseStoresButton} 
+        onPress={() => navigation.navigate('AllStores')}>
+        <Text style={styles.browseStoresText}>Browse All Stores</Text>
       </TouchableOpacity>
       <View style={styles.categoriesContainer}>
         {categories.map((category, index) => (
-          <View key={index} style={styles.category}>
+          <TouchableOpacity key={index} style={styles.category} onPress={() => navigation.navigate('StoresCategories', { category: category.name })}>
             <Image source={category.icon} style={styles.categoryIcon} />
             <Text style={styles.categoryText}>{category.name}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
       <View style={styles.sectionContainer}>
