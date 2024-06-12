@@ -110,7 +110,7 @@ const LoginScreen = () => {
   const completeLogin = () => {
     console.log("navigating");
     if (userType === "Vendor") {
-      navigation.navigate('VendorHomePage');
+      navigation.navigate('VendorHomepage');
     } else if (userType === "Customer") {
       navigation.navigate('Homepage');
     }

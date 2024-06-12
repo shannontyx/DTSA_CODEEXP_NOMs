@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase/firebaseConfig';
+import { db } from '../firebase/firebaseConfig';
 import { getAuth } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 

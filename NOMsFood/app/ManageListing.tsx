@@ -405,7 +405,7 @@ const ManageListing = () => {
           ? renderListings(inStockListings)
           : renderListings(outOfStockListings)}
       </ScrollView>
-      <View style={styles.footer}>
+      {/* <View style={styles.footer}>
         <TouchableOpacity style={styles.footerButton}>
           <Icon name="group" size={24} color="#2c5f2d" />
           <Text style={styles.footerButtonText}>Manage Store</Text>
@@ -424,8 +424,8 @@ const ManageListing = () => {
         <TouchableOpacity style={styles.footerButton}>
           <Icon name="shopping-cart" size={24} color="#2c5f2d" />
           <Text style={styles.footerButtonText}>View Orders</Text>
-        </TouchableOpacity>
-      </View>
+        </TouchableOpacity> */}
+      {/* </View> */}
 
       <Modal
         animationType="slide"

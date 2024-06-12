@@ -9,14 +9,14 @@ import CheckoutScreen from './CheckoutScreen';
 import CreateStore from './CreateStore';
 import ManageStore from './ManageStore';
 import ViewStore from './(tabs)/ViewStore';
-import viewReviews from './(tabs)/viewReviews';
+import viewReviews from './viewReviews';
 import StoreDetailsPage from './StoreDetailsPage';
 import ManageListing from './ManageListing';
 import StoresCategories from './StoresCategories';
 import CustViewOrders from './CustViewOrders';
 import HomeScreen from './index';
 import HomePage from './Homepage'
-import VendorHomepage from './(tabs)/VendorHomepage';
+import VendorHomepage from './VendorHomepage';
 import ChatScreen from './ChatScreen';
 
 const Stack = createNativeStackNavigator();
