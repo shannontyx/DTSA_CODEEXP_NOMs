@@ -77,6 +77,7 @@ const CheckoutScreen = () => {
     const orderDetails = {
       cart: cartItems.map(item => ({
         listingId: item.id,
+        listingName: item.name,
         price: item.price,
         quantity: item.cartQuantity,
       })),
@@ -95,7 +96,7 @@ const CheckoutScreen = () => {
         customerName: user.name,
         date: currentTime,
         orderItems: orderDetails,
-        orderStatus: "Ongoing",
+        orderStatus: "In Progress",
         orderPrice: total,
         storeId: orderedStoreId,
         orderId: generateRandomString(),

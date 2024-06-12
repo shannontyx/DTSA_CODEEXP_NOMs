@@ -14,22 +14,12 @@ const OrderConfirmed = ({ orderId }: OrderConfirmedProps) => {
     console.log("Order done");
   }, []);
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
-
-
-  //const cartItems = data?.cartItems || [];
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Order Confirmed!</Text>
       <Text style={styles.message}>Thank you for your order. Your payment has been successfully processed and your order is confirmed.</Text>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SearchStores')}>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Homepage')}>
         <Text style={styles.buttonText}>Continue Shopping</Text>
       </TouchableOpacity>
     </View>
@@ -41,6 +31,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
   title: {
     fontSize: 24,
