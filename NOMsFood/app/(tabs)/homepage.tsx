@@ -18,7 +18,10 @@ const HomeScreen = () => {
   const greenVendors = [
     { name: 'Stuffd', image: require('../../assets/images/stuffd.jpg') },
     { name: 'EggTopia', image: require('../../assets/images/eggtopia.png') },
-    { name: 'Wafflesia', image: require('../../assets/images/wafflesia.png') },
+    { name: 'Duck', image: require('../../assets/images/wafflesia.png') },
+  ];
+  const pastOrders = [
+    
   ];
 
   return (
@@ -26,6 +29,9 @@ const HomeScreen = () => {
       <View style={styles.searchBarContainer}>
         <Icon name="search" size={20} color="#000" />
         <TextInput placeholder="Search Store..." style={styles.searchBar} />
+        <TouchableOpacity onPress={() => navigation.navigate('CartScreen')}>
+          <Icon name="shopping-cart" size={24} color="#000" style={styles.cartIcon} />
+        </TouchableOpacity>
       </View>
       <TouchableOpacity 
         style={styles.browseStoresButton} 
@@ -41,7 +47,7 @@ const HomeScreen = () => {
         ))}
       </View>
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Go GREEN</Text>
+        <Text style={styles.sectionTitle}>Go GREEN <Icon name="recycle" size={18} color="green" /></Text>
         <Text style={styles.sectionSubtitle}>
           Order from vendors that support sustainable packaging!
         </Text>
@@ -52,21 +58,12 @@ const HomeScreen = () => {
           {greenVendors.map((vendor, index) => (
             <View key={index} style={styles.vendorContainer}>
               <Image source={vendor.image} style={styles.vendorImage} />
-              <Text style={styles.vendorText}>{vendor.name}</Text>
+              <Text style={styles.vendorText}>{vendor.name} </Text>
             </View>
           ))}
         </ScrollView>
-        <TouchableOpacity onPress={() => navigation.navigate('Western')}>
-          <Text>Western Stores</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('CartScreen')}>
-          <Text>Cart Screen</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('CheckoutScreen')}>
-          <Text>Checkout Cart Screen</Text>
-        </TouchableOpacity>
       </View>
-      {/* <View style={styles.sectionContainer}>
+      <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>Order Again</Text>
         <Text style={styles.sectionSubtitle}>Order from your past orders</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -77,7 +74,7 @@ const HomeScreen = () => {
             </View>
           ))}
         </ScrollView>
-      </View> */}
+      </View>
     </ScrollView>
   );
 };
@@ -94,7 +91,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 5,
     padding: 10,
-    marginTop: 50,
+    marginTop: 20,
     marginBottom: 10,
   },
   searchBar: {
@@ -102,18 +99,22 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 16,
   },
+  cartIcon: {
+    marginLeft: 10,
+  },
   browseStoresButton: {
     alignItems: 'center',
     marginVertical: 10,
   },
   browseStoresText: {
-    color: '#007BFF',
+    color: '#2c5f2d',
     fontSize: 16,
+    fontWeight: 'bold',
   },
   categoriesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     marginBottom: 20,
   },
   category: {
@@ -122,8 +123,8 @@ const styles = StyleSheet.create({
     width: '22%',
   },
   categoryIcon: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     marginBottom: 5,
   },
   categoryText: {
@@ -132,11 +133,19 @@ const styles = StyleSheet.create({
   },
   sectionContainer: {
     marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   sectionSubtitle: {
     fontSize: 14,
@@ -145,6 +154,8 @@ const styles = StyleSheet.create({
   vendorContainer: {
     alignItems: 'center',
     marginRight: 15,
+    marginBottom: 4,
+    marginTop: 8,
   },
   vendorImage: {
     width: 100,
@@ -154,6 +165,7 @@ const styles = StyleSheet.create({
   },
   vendorText: {
     fontSize: 14,
+    fontWeight: 'bold',
   },
 });
 
