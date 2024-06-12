@@ -107,7 +107,8 @@ const CustViewOrders = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 20,
+    backgroundColor: '#F5F5F5',
+    padding:20, 
   },
   tabContainer: {
     flexDirection: 'row',
@@ -137,6 +138,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 10,
     padding: 15,
+    marginTop: 10,
     marginBottom: 10,
     backgroundColor: '#fff',
     shadowColor: '#000',
