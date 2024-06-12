@@ -73,9 +73,9 @@ const StoreDetailsPage: React.FC = () => {
 
     const loadCart = async () => {
       try {
-        const savedCart = await AsyncStorage.getItem('cart');
+        const savedCart = await AsyncStorage.getItem(storeId);
         if (savedCart) {
-          //setCart(JSON.parse(savedCart));
+          setCart(JSON.parse(savedCart));
         }
       } catch (error) {
         console.error('Error loading cart:', error);
@@ -90,7 +90,7 @@ const StoreDetailsPage: React.FC = () => {
   useEffect(() => {
     const saveCart = async () => {
       try {
-        await AsyncStorage.setItem('cart', JSON.stringify(cart));
+        await AsyncStorage.setItem(storeId, JSON.stringify(cart));
       } catch (error) {
         console.error('Error saving cart:', error);
       }
@@ -127,7 +127,7 @@ const StoreDetailsPage: React.FC = () => {
   };
 
   const handleCheckout = () => {
-    navigation.navigate('CartScreen');
+    navigation.navigate('CartScreen', { orderedStoreId: storeId });
   };
 
   return (
