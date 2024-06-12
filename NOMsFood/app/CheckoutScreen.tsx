@@ -3,10 +3,26 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert } fr
 import { useRoute, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db } from '../firebase/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
-import { useCreatePaymentIntentMutation } from '@/components/apiSlice';
+import { useCreatePaymentIntentMutation } from '../components/apiSlice';
+import { useStripe } from '@stripe/stripe-react-native';
+import { getAuth } from 'firebase/auth';
+import { collection, addDoc, getFirestore, where, query, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+
+
+function generateRandomString() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = '';
+
+  for (let i = 0; i < 4; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    randomString += characters.charAt(randomIndex);
+  }
+
+  return randomString;
+}
 
 const CheckoutScreen = () => {
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const route = useRoute();
   const { orderedStoreId, bringOwnContainer } = route.params as { storeId: string, bringOwnContainer: boolean };
   const navigation = useNavigation();
@@ -14,8 +30,10 @@ const CheckoutScreen = () => {
   const [store, setStore] = useState<Store | null>(null);
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.cartQuantity, 0);
   const goGreenDiscount = 1.00;
-  const total = subtotal - goGreenDiscount;
+  const total = bringOwnContainer ? subtotal - goGreenDiscount : subtotal;
   const [createPaymentIntent] = useCreatePaymentIntentMutation();
+
+
 
   useEffect(() => {
     loadCart();
@@ -49,44 +67,109 @@ const CheckoutScreen = () => {
     }
   };
 
-  const saveCart = async (updatedCartItems) => {
-    try {
-      await AsyncStorage.setItem(orderedStoreId, JSON.stringify(updatedCartItems));
-    } catch (error) {
-      console.error('Error saving cart:', error);
-    }
-  };
-
 
   const applyDiscount = (subtotal) => {
     return bringOwnContainer ? subtotal - goGreenDiscount : subtotal;
   };
 
-  const payAndCheckout = async () => {
-    const response = await createPaymentIntent({
-      amount: Math.floor(total * 100),
-    });
-    console.log(response);
-    if (response.error) {
-      Alert.alert('Something went wrong', response.error);
-      return;
+  const createOrder = async () => {
+    console.log("firebasing");
+    const orderDetails = {
+      cart: cartItems.map(item => ({
+        listingId: item.id,
+        price: item.price,
+        quantity: item.cartQuantity,
+      })),
+      totalPayment: total.toString()
+    };
+    const currentTime = new Date();
+    const auth = getAuth(); // Get Current User State
+    const currentUser = auth.currentUser;
+    console.log(orderDetails);
+    const userQuerySnapshot = await getDocs(query(collection(db, 'Users'), where("userId", "==", currentUser.uid)));
+    const user = userQuerySnapshot.docs[0].data();
+
+    if (orderDetails) {
+      const newOrderPayload = {
+        customerId: currentUser.uid,
+        customerName: user.name,
+        date: currentTime,
+        orderItems: orderDetails,
+        orderStatus: "Ongoing",
+        orderPrice: total,
+        storeId: orderedStoreId,
+        orderId: generateRandomString(),
+        orderReviewed: false
+      }
+
+      console.log(newOrderPayload);
+
+      try {
+        addDoc(collection(db, 'Order'), newOrderPayload);
+        console.log("Done")
+        for (const item of orderDetails.cart) {
+          const listingDocRef = doc(db, 'Listing', item.listingId);
+          const listingDocSnapshot = await getDoc(listingDocRef);
+          if (listingDocSnapshot.exists()) {
+            const listingData = listingDocSnapshot.data();
+            const currentInventoryCount = parseInt(listingData.quantity, 10);
+            console.log(currentInventoryCount);
+            const updatedInventoryCount = currentInventoryCount - item.quantity;
+            console.log(updatedInventoryCount);
+            await updateDoc(listingDocRef, { quantity: updatedInventoryCount });
+            console.log(`Updated inventory count for listing ${item.listingId}`);
+          } else {
+            console.log(`Listing ${item.listingId} not found.`);
+          }
+        }
+      } catch (error) {
+        console.error('Error adding order', error);
+      }
+      await AsyncStorage.clear();
+
+      navigation.navigate("orderConfirmed");
     }
-    const { error: paymentSheetError } = await initPaymentSheet({
-      merchantDisplayName: 'Example, Inc.',
-      paymentIntentClientSecret: response.data.paymentIntent,
-      defaultBillingDetails: {
-        name: 'Jane Doe',
-      },
-    });
-    if (paymentSheetError) {
-      Alert.alert('Something went wrong', paymentSheetError.message);
-      return;
-    }
-    if (paymentError) {
-      Alert.alert(`Error code: ${paymentError.code}`, paymentError.message);
-      return;
-    }
-  };
+  }
+
+  const completeOrder = async () => {
+    console.log(total);
+    const payAndCheckout = async () => {
+      const response = await createPaymentIntent({
+        amount: Math.floor(total * 100),
+      });
+      console.log(response);
+      if (response.error) {
+        Alert.alert('Something went wrong', response.error);
+        return;
+      }
+      console.log("step 2");
+      const initResponse = await initPaymentSheet({
+        merchantDisplayName: store.name,
+        paymentIntentClientSecret: response.data.paymentIntent,
+      });
+      if (initResponse.error) {
+        Alert.alert('Something went wrong');
+        return;
+      }
+      console.log("step 3");
+      const paymentResponse = await presentPaymentSheet();
+
+      if (paymentResponse.error) {
+        Alert.alert(
+          `Error code: ${paymentResponse.error.code}`,
+          paymentResponse.error.message
+        );
+        return;
+      }
+      createOrder();
+    };
+
+    await payAndCheckout();
+
+  }
+
+
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -127,7 +210,7 @@ const CheckoutScreen = () => {
       </View>
       <TouchableOpacity
         style={[styles.paymentButton, cartItems.length === 0 && styles.paymentButtonDisabled]}
-        //onPress={}
+        onPress={completeOrder}
         disabled={cartItems.length === 0}
       >
         <Text style={styles.paymentButtonText}>Checkout</Text>

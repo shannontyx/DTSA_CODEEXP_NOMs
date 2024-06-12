@@ -68,6 +68,7 @@ const CartScreen = () => {
 
   const decreaseQuantity = (index) => {
     const updatedCartItems = [...cartItems];
+    console.log(updatedCartItems);
     const newCartQuantity = updatedCartItems[index].cartQuantity - 1;
     if (newCartQuantity > 0) {
       updatedCartItems[index].cartQuantity = newCartQuantity;

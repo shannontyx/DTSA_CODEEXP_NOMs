@@ -5,6 +5,7 @@ import { useAuth } from '../components/authContext';
 import { doSignOut } from '@/firebase/auth';
 import { TextInput, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const EditProfile: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -58,9 +59,10 @@ const EditProfile: React.FC = () => {
     };
 
     const handleSignOut = () => {
-        await AsyncStorage.clear();
         doSignOut().then(() => {
             navigation.navigate('index');
+        }).then(() => {
+            AsyncStorage.clear();
         });
     };
 

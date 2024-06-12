@@ -20,6 +20,7 @@ interface Store {
 }
 
 interface Listing {
+  id: string;
   description: string;
   name: string;
   price: number;
@@ -64,7 +65,9 @@ const StoreDetailsPage: React.FC = () => {
         const querySnapshot = await getDocs(q);
         const listingsData: Listing[] = [];
         querySnapshot.forEach((doc) => {
-          listingsData.push(doc.data() as Listing);
+          const data = doc.data() as Listing
+          data.id = doc.id
+          listingsData.push(data);
         });
         setListings(listingsData);
       } catch (error) {
