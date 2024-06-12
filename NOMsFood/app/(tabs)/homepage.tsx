@@ -94,6 +94,10 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+  },
  
   topContainer: {
     backgroundColor: '#2c5f2d', // Dark green background color for the top part
