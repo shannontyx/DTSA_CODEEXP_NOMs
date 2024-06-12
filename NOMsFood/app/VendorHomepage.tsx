@@ -1,10 +1,14 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 
 const VendorHomepage = () => {
   const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const handleIconPress = () => {
     navigation.navigate('Profile');
@@ -13,7 +17,7 @@ const VendorHomepage = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image source={require('../../assets/images/noms2.png')} style={styles.logo} />
+        <Image source={require('../assets/images/noms2.png')} style={styles.logo} />
         <Icon name="user" size={24} color="#000" style={styles.userIcon} onPress={handleIconPress} />
       </View>
       <Text style={styles.greeting}>Good Day VendorName,</Text>
@@ -39,7 +43,7 @@ const VendorHomepage = () => {
         </TouchableOpacity>
       </View>
       <View style={styles.greenSection}>
-        <Image source={require('../../assets/images/gogreen.jpg')} style={styles.greenImage} />
+        <Image source={require('../assets/images/gogreen.jpg')} style={styles.greenImage} />
         <View style={styles.greenTextContainer}>
           <Text style={styles.greenTitle}>Go GREEN</Text>
           <Text style={styles.greenSubtitle}>

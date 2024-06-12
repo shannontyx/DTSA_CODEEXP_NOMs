@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db } from '../../firebase/firebaseConfig';
-import { doCreateUserWithEmailAndPassword } from '../../firebase/auth'
+import { db } from '../firebase/firebaseConfig';
+import { doCreateUserWithEmailAndPassword } from '../firebase/auth'
 import { collection, addDoc } from "firebase/firestore";
-import { useAuth } from '../../components/authContext'
+import { useAuth } from '../components/authContext'
 import { getAuth } from 'firebase/auth';
+
 
 interface Profile {
   email: string;
@@ -23,17 +24,20 @@ interface userProfile {
   contact: string;
   password: string;
   type: string;
-  storeId: string;
   userId: string;
   status: string;
 }
 
-const registerVendorUser: React.FC = () => {
+const registerCustomerUser: React.FC = () => {
   const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
   const [registering, setRegistering] = useState(false);
 
-  const authContext = useAuth();
-  const userLoggedIn = authContext ? authContext.userLoggedIn : false;
+  const { userLoggedIn = false } = useAuth() ?? {};
   const auth = getAuth();
 
   const [profile, setProfile] = useState<Profile>({
@@ -70,8 +74,7 @@ const registerVendorUser: React.FC = () => {
           username: ProfileData.username,
           contact: ProfileData.contact,
           password: ProfileData.password,
-          type: "Vendor",
-          storeId: "",
+          type: "Customer",
           userId: uid,
           status: "Active",
         };
@@ -79,7 +82,7 @@ const registerVendorUser: React.FC = () => {
       }
       console.log('User profile added to database!');
       alert('You have successfully created this user!');
-      //setProfile({ email: '', name: '', username: '', contact: '', password: '', confirmPassword: '' }); // Reset profile
+      setProfile({ email: '', name: '', username: '', contact: '', password: '', confirmPassword: '' }); // Reset profile
     } catch (error) {
       console.error('Error adding user', error);
       throw error;
@@ -96,13 +99,9 @@ const registerVendorUser: React.FC = () => {
       try {
         await handleNewUser(profile);
         setRegistering(false);
-        
-        console.log(userLoggedIn);
-        // if (userLoggedIn && !registering) {
-        
-          console.log("navigate to create store");
-          navigation.navigate('CreateStore');
-        // }
+        if (userLoggedIn && !registering) {
+          navigation.navigate('homepage');
+        }
       } catch (error) {
         console.error('Error handling user profile:', error);
       }
@@ -114,14 +113,16 @@ const registerVendorUser: React.FC = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-        <Text style={styles.backButtonText}>{'< Back'}</Text>
+        <Text style={styles.backButtonText}
+        
+        >{'< Back'}</Text>
       </TouchableOpacity>
       <Image
-          source={require('../../assets/images/nomsicon.png')}
+          source={require('../assets/images/nomsicon.png')}
           style={[styles.logo]}
         />
       <View style={styles.formContainer}>
-        <Text style={styles.headerText}>Vendor Registration</Text>
+      <Text style={styles.headerText}>Customer Registration</Text>
         <TextInput
           style={styles.input}
           placeholder="Email address"
@@ -150,14 +151,12 @@ const registerVendorUser: React.FC = () => {
           style={styles.input}
           placeholder="Password"
           value={profile.password}
-          secureTextEntry
           onChangeText={value => handleInputChange('password', value)}
         />
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"
           value={profile.confirmPassword}
-          secureTextEntry
           onChangeText={value => handleInputChange('confirmPassword', value)}
         />
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
@@ -209,6 +208,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderColor: 'gray',
     borderWidth: 1,
+    placeholderTextColor: 'darkgray', 
   },
   button: {
     backgroundColor: '#10390A',
@@ -224,4 +224,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default registerVendorUser;
+export default registerCustomerUser;

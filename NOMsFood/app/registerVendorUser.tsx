@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db } from '../../firebase/firebaseConfig';
-import { doCreateUserWithEmailAndPassword } from '../../firebase/auth'
+import { db } from '../firebase/firebaseConfig';
+import { doCreateUserWithEmailAndPassword } from '../firebase/auth'
 import { collection, addDoc } from "firebase/firestore";
-import { useAuth } from '../../components/authContext'
+import { useAuth } from '../components/authContext'
 import { getAuth } from 'firebase/auth';
-
 
 interface Profile {
   email: string;
@@ -24,16 +23,22 @@ interface userProfile {
   contact: string;
   password: string;
   type: string;
+  storeId: string;
   userId: string;
   status: string;
 }
 
-const registerCustomerUser: React.FC = () => {
+const registerVendorUser: React.FC = () => {
   const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const [registering, setRegistering] = useState(false);
 
-  const { userLoggedIn = false } = useAuth() ?? {};
+  const authContext = useAuth();
+  const userLoggedIn = authContext ? authContext.userLoggedIn : false;
   const auth = getAuth();
 
   const [profile, setProfile] = useState<Profile>({
@@ -53,7 +58,7 @@ const registerCustomerUser: React.FC = () => {
   };
 
   const handleBackPress = () => {
-    navigation.goBack();
+    navigation.navigate('index');
   };
 
   const handleNewUser = async (ProfileData: Profile) => {
@@ -70,7 +75,8 @@ const registerCustomerUser: React.FC = () => {
           username: ProfileData.username,
           contact: ProfileData.contact,
           password: ProfileData.password,
-          type: "Customer",
+          type: "Vendor",
+          storeId: "",
           userId: uid,
           status: "Active",
         };
@@ -78,7 +84,7 @@ const registerCustomerUser: React.FC = () => {
       }
       console.log('User profile added to database!');
       alert('You have successfully created this user!');
-      setProfile({ email: '', name: '', username: '', contact: '', password: '', confirmPassword: '' }); // Reset profile
+      //setProfile({ email: '', name: '', username: '', contact: '', password: '', confirmPassword: '' }); // Reset profile
     } catch (error) {
       console.error('Error adding user', error);
       throw error;
@@ -95,8 +101,11 @@ const registerCustomerUser: React.FC = () => {
       try {
         await handleNewUser(profile);
         setRegistering(false);
+        
+        console.log(userLoggedIn);
         if (userLoggedIn && !registering) {
-          navigation.navigate('homepage');
+          console.log("navigate to create store");
+          navigation.navigate('CreateStore');
         }
       } catch (error) {
         console.error('Error handling user profile:', error);
@@ -112,10 +121,11 @@ const registerCustomerUser: React.FC = () => {
         <Text style={styles.backButtonText}>{'< Back'}</Text>
       </TouchableOpacity>
       <Image
-          source={require('../../assets/images/nomsicon.png')}
+          source={require('../assets/images/nomsicon.png')}
           style={[styles.logo]}
         />
       <View style={styles.formContainer}>
+        <Text style={styles.headerText}>Vendor Registration</Text>
         <TextInput
           style={styles.input}
           placeholder="Email address"
@@ -144,12 +154,14 @@ const registerCustomerUser: React.FC = () => {
           style={styles.input}
           placeholder="Password"
           value={profile.password}
+          secureTextEntry
           onChangeText={value => handleInputChange('password', value)}
         />
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"
           value={profile.confirmPassword}
+          secureTextEntry
           onChangeText={value => handleInputChange('confirmPassword', value)}
         />
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
@@ -176,14 +188,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerText: {
+    fontSize: 20,
+    color: "#2c5f2d",
+    fontWeight: "bold",
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
   backButton: {
     position: 'absolute',
-    top: 20,
+    top: 60,
     left: 16,
     zIndex: 1, // Ensure the back button is above other content
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   input: {
@@ -207,4 +228,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default registerCustomerUser;
+export default registerVendorUser;

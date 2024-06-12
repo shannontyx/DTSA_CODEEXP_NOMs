@@ -58,7 +58,7 @@ const ManageStore = () => {
       <View style={styles.header}>
         <Text style={styles.headerText}>Your Store: {store.name}</Text>
       </View>
-      <Image source={require('../assets/icons/westt.jpg')} style={styles.storeImage} />
+      <Image source={store.imageurl || require('../assets/icons/westt.jpg')} style={styles.storeImage} />
       <View style={styles.infoContainer}>
         <Text style={styles.label}>Store Name:</Text>
         <Text style={styles.value}>{store.name}</Text>

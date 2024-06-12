@@ -5,10 +5,15 @@ import { Image, StyleSheet, Platform, useColorScheme } from 'react-native';
 //import { ThemedView } from '@/components/ThemedView';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import React, { useLayoutEffect } from 'react';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const navigateLogin = () => {
     navigation.navigate('loginScreen');
@@ -28,7 +33,7 @@ export default function HomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: '#FFFFFF' }]}>
       <Image
-        source={require('../../assets/images/nomsicon.png')}
+        source={require('../assets/images/nomsicon.png')}
         style={[styles.logo]}
       />
       <Text style={[styles.title]}>Welcome to NOMs Food!</Text>

@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { doSignInWithEmailAndPassword, doSignOut } from '../../firebase/auth'
+import { doSignInWithEmailAndPassword, doSignOut } from '../firebase/auth'
 import { FirebaseError } from '@firebase/util';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../components/authContext'
+import { useAuth } from '../components/authContext'
 import { getAuth } from 'firebase/auth';
-import { db } from '../../firebase/firebaseConfig';
+import { db } from '../firebase/firebaseConfig';
 import { Button } from 'react-native-paper';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
+
+  // Hide the header
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -105,9 +110,9 @@ const LoginScreen = () => {
   const completeLogin = () => {
     console.log("navigating");
     if (userType === "Vendor") {
-      navigation.navigate('VendorHomepage', { replace: true });
+      navigation.navigate('VendorHomepage');
     } else if (userType === "Customer") {
-      navigation.navigate('homepage', { replace: true });
+      navigation.navigate('Homepage');
     }
   };
 
@@ -121,7 +126,7 @@ const LoginScreen = () => {
         <Text style={styles.backButtonText}>{'< Back'}</Text>
       </TouchableOpacity>
       <Image
-        source={require('../../assets/images/nomsicon.png')}
+        source={require('../assets/images/nomsicon.png')}
         style={[styles.logo]}
       />
       <Text style={styles.title}>Login</Text>
@@ -163,12 +168,12 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 20,
+    top: 60,
     left: 16,
     zIndex: 1, // Ensure the back button is above other content
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   logo: {
