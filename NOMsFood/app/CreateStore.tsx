@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Text, TextInput, StyleSheet, TouchableOpacity, View, Switch, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, TextInput, StyleSheet, TouchableOpacity, View, Switch, FlatList, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { db } from '../firebase/firebaseConfig';
 import { collection, addDoc, query, where, getDocs, updateDoc } from "firebase/firestore";
 import MapView, { Marker } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useAuth } from '../components/authContext';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useAuth } from '../components/authContext';
 
 function CreateStore() {
   const navigate = useNavigation();
@@ -20,15 +19,17 @@ function CreateStore() {
     description: '',
     opening: '',
     closing: '',
+    contact:'',
     location: '',
     locationG: '',
     category: 'Chinese', // Default category
     isOpen: false,
     isGreen: false, // Go Green switch
     distance: '0',
-    creatorEmail: '',
-    userId: ''
+    creatorEmail: currentUserEmail || '',
+    userId: currentUserId || ''
   });
+
   const [marker, setMarker] = useState({ lat: 1.3521, lng: 103.8198 }); // Default to Singapore coordinates
   const [showMoreInfo, setShowMoreInfo] = useState(false);
   const [open, setOpen] = useState(false);
@@ -50,17 +51,27 @@ function CreateStore() {
     }));
   };
 
+  const handlePlaceSelect = (data, details) => {
+    const address = details.formatted_address;
+    setStore(prevStore => ({
+      ...prevStore,
+      locationG: { lat: details.geometry.location.lat, lng: details.geometry.location.lng },
+      location: address,
+    }));
+    setMarker({ lat: details.geometry.location.lat, lng: details.geometry.location.lng });
+  };
+
   const handleSubmit = async () => {
     try {
       const storeCollectionRef = collection(db, "Stores");
       const storeDocRef = await addDoc(storeCollectionRef, {
         ...store,
         locationG: marker,
-        location: store.location,
       });
 
       const usersCollectionRef = collection(db, "Users");
-      const q = query(usersCollectionRef, where("email", "==", currentUserEmail));      const querySnapshot = await getDocs(q);
+      const q = query(usersCollectionRef, where("email", "==", currentUserEmail));
+      const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const userDocRef = querySnapshot.docs[0].ref;
@@ -76,119 +87,188 @@ function CreateStore() {
     }
   };
 
-  return (
-    <KeyboardAwareScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Create Store</Text>
-      <Text style={styles.subtitle}>Set-up your store right now!</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Store Name"
-        value={store.name}
-        onChangeText={(value) => handleInputChange('name', value)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Description"
-        value={store.description}
-        onChangeText={(value) => handleInputChange('description', value)}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Opening Hours (HH:MM)"
-        value={store.opening}
-        onChangeText={(value) => handleInputChange('opening', value)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Closing Hours (HH:MM)"
-        value={store.closing}
-        onChangeText={(value) => handleInputChange('closing', value)}
-      />
-      <Text style={styles.pickerLabel}>Category</Text>
-      <DropDownPicker
-        open={open}
-        value={store.category}
-        items={categories}
-        setOpen={setOpen}
-        setValue={(callback) => handleInputChange('category', callback(store.category))}
-        setItems={setCategories}
-        style={styles.dropdown}
-        containerStyle={styles.dropdownContainer}
-      />
-      <GooglePlacesAutocomplete
-        placeholder='Enter Store Address'
-        onPress={(data, details = null) => {
-          const location = data.description;
-          const { lat, lng } = details.geometry.location;
-          setMarker({ lat, lng });
-          handleInputChange('locationG', `${lat},${lng}`);
-          handleInputChange('location', location);
-        }}
-        query={{
-          key: 'AIzaSyAPomcsuwYqpr_xLpQPAfZOFI3AxxuldJs',
-          language: 'en',
-        }}
-        fetchDetails={true}
-        styles={{
-          textInputContainer: {
-            width: '100%',
-          },
-          textInput: {
-            height: 50,
-            borderColor: '#ccc',
-            borderWidth: 1,
-            borderRadius: 5,
-            paddingHorizontal: 10,
-            marginBottom: 15,
-            backgroundColor: '#fff',
-          },
-        }}
-      />
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: marker.lat,
-          longitude: marker.lng,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-        region={{
-          latitude: marker.lat,
-          longitude: marker.lng,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-      >
-        <Marker coordinate={{ latitude: marker.lat, longitude: marker.lng }} />
-      </MapView>
-      <View style={styles.greenContainer}>
-        <Icon name="recycle" size={20} color="#10390A" style={styles.icon} />
-        <Text style={styles.label2}>Be part of Go Green</Text>
-      </View>
-      <View style={styles.checkboxContainer}>
-        <Text style={styles.label}>Allow Bring Your Own Container</Text>
-        <Switch
-          value={store.isGreen}
-          onValueChange={(value) => handleInputChange('isGreen', value)}
+  const formData = [
+    {
+      key: 'storeName',
+      component: (
+        <TextInput
+          style={styles.input}
+          placeholder="Store Name"
+          value={store.name}
+          onChangeText={(value) => handleInputChange('name', value)}
         />
-      </View>
-      <TouchableOpacity onPress={() => setShowMoreInfo(!showMoreInfo)}>
-        <Text style={styles.moreInfoText}>More info</Text>
-      </TouchableOpacity>
-      {showMoreInfo && (
-        <View style={styles.moreInfoContainer}>
-          <Text style={styles.moreInfoText2}>
-            The energy used to manufacture reusable packaging items is up to 64% lower than is required to manufacture and recycle the single-use packaging items they replace. Do your part to save our earth.
-          </Text>
+      ),
+    },
+    {
+      key: 'description',
+      component: (
+        <TextInput
+          style={styles.input}
+          placeholder="Description"
+          value={store.description}
+          onChangeText={(value) => handleInputChange('description', value)}
+        />
+      ),
+    },
+    {
+      key: 'contact',
+      component: (
+        <TextInput
+          style={styles.input}
+          placeholder="Contact Details"
+          value={store.contact}
+          onChangeText={(value) => handleInputChange('contact', value)}
+        />
+      ),
+    },
+    {
+      key: 'openingHours',
+      component: (
+        <TextInput
+          style={styles.input}
+          placeholder="Opening Hours (HH:MM)"
+          value={store.opening}
+          onChangeText={(value) => handleInputChange('opening', value)}
+        />
+      ),
+    },
+    {
+      key: 'closingHours',
+      component: (
+        <TextInput
+          style={styles.input}
+          placeholder="Closing Hours (HH:MM)"
+          value={store.closing}
+          onChangeText={(value) => handleInputChange('closing', value)}
+        />
+      ),
+    },
+    {
+      key: 'categoryPicker',
+      component: (
+        <View style={styles.pickerWrapper}>
+          <Text style={styles.pickerLabel}>Category</Text>
+          <DropDownPicker
+            open={open}
+            value={store.category}
+            items={categories}
+            setOpen={setOpen}
+            setValue={(callback) => handleInputChange('category', callback(store.category))}
+            setItems={setCategories}
+            style={styles.dropdown}
+            containerStyle={styles.dropdownContainer}
+          />
         </View>
-      )}
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Create Store</Text>
-      </TouchableOpacity>
-    </KeyboardAwareScrollView>
+      ),
+    },
+    {
+      key: 'googlePlaces',
+      component: (
+        <GooglePlacesAutocomplete
+          placeholder='Enter Store Address'
+          onPress={handlePlaceSelect}
+          query={{
+            key: 'AIzaSyAPomcsuwYqpr_xLpQPAfZOFI3AxxuldJs',
+            language: 'en',
+          }}
+          fetchDetails={true}
+          styles={{
+            textInputContainer: {
+              width: '100%',
+            },
+            textInput: {
+              height: 50,
+              borderColor: '#ccc',
+              borderWidth: 1,
+              borderRadius: 5,
+              paddingHorizontal: 10,
+              marginBottom: 15,
+              backgroundColor: '#fff',
+            },
+          }}
+        />
+      ),
+    },
+    {
+      key: 'mapView',
+      component: (
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: marker.lat,
+            longitude: marker.lng,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+          region={{
+            latitude: marker.lat,
+            longitude: marker.lng,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        >
+          <Marker coordinate={{ latitude: marker.lat, longitude: marker.lng }} />
+        </MapView>
+      ),
+    },
+    {
+      key: 'greenContainer',
+      component: (
+        <>
+          <View style={styles.greenContainer}>
+            <Icon name="recycle" size={20} color="#10390A" style={styles.icon} />
+            <Text style={styles.label2}>Be part of Go Green</Text>
+          </View>
+          <View style={styles.checkboxContainer}>
+            <Text style={styles.label}>Allow Bring Your Own Container</Text>
+            <Switch
+              value={store.isGreen}
+              onValueChange={(value) => handleInputChange('isGreen', value)}
+            />
+          </View>
+        </>
+      ),
+    },
+    {
+      key: 'moreInfo',
+      component: (
+        <>
+          <TouchableOpacity onPress={() => setShowMoreInfo(!showMoreInfo)}>
+            <Text style={styles.moreInfoText}>More info</Text>
+          </TouchableOpacity>
+          {showMoreInfo && (
+            <View style={styles.moreInfoContainer}>
+              <Text style={styles.moreInfoText2}>
+                The energy used to manufacture reusable packaging items is up to 64% lower than is required to manufacture and recycle the single-use packaging items they replace. Do your part to save our earth.
+              </Text>
+            </View>
+          )}
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <FlatList
+        data={formData}
+        renderItem={({ item }) => <View key={item.key}>{item.component}</View>}
+        ListHeaderComponent={() => (
+          <>
+            <Text style={styles.title}>Create Store</Text>
+            <Text style={styles.subtitle}>Set-up your store right now!</Text>
+          </>
+        )}
+        ListFooterComponent={() => (
+          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>Create Store</Text>
+          </TouchableOpacity>
+        )}
+        keyboardShouldPersistTaps="handled"
+      />
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -219,8 +299,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#fff',
   },
-  pickerLabel: {
+  pickerWrapper: {
     width: '100%',
+    marginBottom: 15,
+  },
+  pickerLabel: {
     fontSize: 16,
     color: '#555',
     marginBottom: 5,
