@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { ScrollView, Text, TextInput, StyleSheet, TouchableOpacity, View, Switch } from 'react-native';
+import { Text, TextInput, StyleSheet, TouchableOpacity, View, Switch, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { db } from '../firebase/firebaseConfig';
 import { collection, addDoc, query, where, getDocs, updateDoc } from "firebase/firestore";
 import MapView, { Marker } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { Picker } from '@react-native-picker/picker';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 function CreateStore() {
   const navigate = useNavigation();
@@ -16,7 +17,7 @@ function CreateStore() {
     opening: '',
     closing: '',
     location: '',
-    locationString: '',
+    locationG: '',
     category: 'Chinese', // Default category
     isOpen: false,
     isGreen: false, // Go Green switch
@@ -26,6 +27,17 @@ function CreateStore() {
   });
   const [marker, setMarker] = useState({ lat: 1.3521, lng: 103.8198 }); // Default to Singapore coordinates
   const [showMoreInfo, setShowMoreInfo] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [categories, setCategories] = useState([
+    { label: 'Western', value: 'Western' },
+    { label: 'Japanese', value: 'Japanese' },
+    { label: 'Korean', value: 'Korean' },
+    { label: 'Halal', value: 'Halal' },
+    { label: 'Indian', value: 'Indian' },
+    { label: 'Pastries', value: 'Pastries' },
+    { label: 'Greens', value: 'Greens' },
+    { label: 'Chinese', value: 'Chinese' },
+  ]);
 
   const handleInputChange = (name: string, value: any) => {
     setStore(prevStore => ({
@@ -39,8 +51,8 @@ function CreateStore() {
       const storeCollectionRef = collection(db, "Stores");
       const storeDocRef = await addDoc(storeCollectionRef, {
         ...store,
-        location: marker,
-        locationString: store.locationString,
+        locationG: marker,
+        location: store.location,
       });
 
       const usersCollectionRef = collection(db, "Users");
@@ -62,7 +74,7 @@ function CreateStore() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAwareScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Create Store</Text>
       <Text style={styles.subtitle}>Set-up your store right now!</Text>
       <TextInput
@@ -79,6 +91,12 @@ function CreateStore() {
       />
       <TextInput
         style={styles.input}
+        placeholder="Vendor Email"
+        value={store.creatorEmail}
+        onChangeText={(value) => handleInputChange('creatorEmail', value)}
+      />
+      <TextInput
+        style={styles.input}
         placeholder="Opening Hours (HH:MM)"
         value={store.opening}
         onChangeText={(value) => handleInputChange('opening', value)}
@@ -89,33 +107,28 @@ function CreateStore() {
         value={store.closing}
         onChangeText={(value) => handleInputChange('closing', value)}
       />
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={store.category}
-          style={styles.picker}
-          onValueChange={(itemValue, itemIndex) => handleInputChange('category', itemValue)}
-        >
-          <Picker.Item label="Western" value="Western" />
-          <Picker.Item label="Japanese" value="Japanese" />
-          <Picker.Item label="Korean" value="Korean" />
-          <Picker.Item label="Halal" value="Halal" />
-          <Picker.Item label="Indian" value="Indian" />
-          <Picker.Item label="Pastries" value="Pastries" />
-          <Picker.Item label="Greens" value="Greens" />
-          <Picker.Item label="Chinese" value="Chinese" />
-        </Picker>
-      </View>
+      <Text style={styles.pickerLabel}>Category</Text>
+      <DropDownPicker
+        open={open}
+        value={store.category}
+        items={categories}
+        setOpen={setOpen}
+        setValue={(callback) => handleInputChange('category', callback(store.category))}
+        setItems={setCategories}
+        style={styles.dropdown}
+        containerStyle={styles.dropdownContainer}
+      />
       <GooglePlacesAutocomplete
         placeholder='Enter Store Address'
         onPress={(data, details = null) => {
-          const locationString = data.description;
+          const location = data.description;
           const { lat, lng } = details.geometry.location;
           setMarker({ lat, lng });
-          handleInputChange('location', `${lat},${lng}`);
-          handleInputChange('locationString', locationString);
+          handleInputChange('locationG', `${lat},${lng}`);
+          handleInputChange('location', location);
         }}
         query={{
-          key: 'YOUR_GOOGLE_MAPS_API_KEY',
+          key: 'AIzaSyAPomcsuwYqpr_xLpQPAfZOFI3AxxuldJs',
           language: 'en',
         }}
         fetchDetails={true}
@@ -175,7 +188,7 @@ function CreateStore() {
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Create Store</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -208,19 +221,21 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#fff',
   },
-  pickerContainer: {
+  pickerLabel: {
     width: '100%',
-    height: 50,
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 5,
+  },
+  dropdownContainer: {
+    width: '100%',
+    marginBottom: 15,
+  },
+  dropdown: {
+    backgroundColor: '#fff',
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 5,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-  },
-  picker: {
-    width: '100%',
-    height: 50,
   },
   map: {
     width: '100%',
