@@ -1,24 +1,29 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
   const categories = [
-    { name: 'Western', icon: require('../../assets/icons/western.png') },
-    { name: 'Greens', icon: require('../../assets/icons/greens.png') },
-    { name: 'Japanese', icon: require('../../assets/icons/japanese.png') },
-    { name: 'Pastries', icon: require('../../assets/icons/pastries.png') },
-    { name: 'Chinese', icon: require('../../assets/icons/chinese.png') },
-    { name: 'Indian', icon: require('../../assets/icons/indian.png') },
-    { name: 'Korean', icon: require('../../assets/icons/korean.png') },
-    { name: 'Halal', icon: require('../../assets/icons/halal.png') },
+    { name: 'Western', icon: require('../assets/icons/western.png') },
+    { name: 'Greens', icon: require('../assets/icons/greens.png') },
+    { name: 'Japanese', icon: require('../assets/icons/japanese.png') },
+    { name: 'Pastries', icon: require('../assets/icons/pastries.png') },
+    { name: 'Chinese', icon: require('../assets/icons/chinese.png') },
+    { name: 'Indian', icon: require('../assets/icons/indian.png') },
+    { name: 'Korean', icon: require('../assets/icons/korean.png') },
+    { name: 'Halal', icon: require('../assets/icons/halal.png') },
   ];
   const greenVendors = [
-    { name: 'Stuffd', image: require('../../assets/images/stuffd.jpg') },
-    { name: 'EggTopia', image: require('../../assets/images/eggtopia.png') },
-    { name: 'Duck', image: require('../../assets/images/wafflesia.png') },
+    { name: 'Stuffd', image: require('../assets/images/stuffd.jpg') },
+    { name: 'EggTopia', image: require('../assets/images/eggtopia.png') },
+    { name: 'Duck', image: require('../assets/images/wafflesia.png') },
   ];
   const pastOrders = [];
 
@@ -27,6 +32,7 @@ const HomeScreen = () => {
   };
 
   return (
+    <View style={styles.container}>
     <ScrollView style={styles.container}>
       <View style={styles.topContainer}>
         <View style={styles.searchBarContainer}>
@@ -70,7 +76,7 @@ const HomeScreen = () => {
             </View>
           ))}
         </ScrollView>
-        <TouchableOpacity onPress={() => navigation.navigate('Western')}>
+        {/* <TouchableOpacity onPress={() => navigation.navigate('Western')}>
           <Text>Western Stores</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('CartScreen')}>
@@ -81,7 +87,7 @@ const HomeScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('CustViewOrders')}>
           <Text>Customer View Orders</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>Order Again</Text>
@@ -94,8 +100,34 @@ const HomeScreen = () => {
             </View>
           ))}
         </ScrollView>
+        
       </View>
+      
     </ScrollView>
+    <View style={styles.footer}>
+    <TouchableOpacity
+  style={styles.footerButton}
+  // onPress={() => navigation.navigate('Homepage')}
+>
+  <Icon name="home" size={24} color="#2c5f2d" />
+  <Text style={styles.footerButtonText}>Home Page</Text>
+</TouchableOpacity>
+<TouchableOpacity
+  style={styles.footerButton}
+  onPress={() => navigation.navigate('CustViewOrders')}
+>
+  <Icon name="file" size={24} color="#2c5f2d" />
+  <Text style={styles.footerButtonText}>Orders</Text>
+</TouchableOpacity>
+<TouchableOpacity style={styles.footerButton}
+onPress={() => navigation.navigate('Profile')}>
+  <Icon name="group" size={24} color="#2c5f2d" />
+  <Text style={styles.footerButtonText}>Account</Text>
+</TouchableOpacity>
+
+
+</View>
+</View>
   );
 };
 
@@ -192,6 +224,23 @@ const styles = StyleSheet.create({
   vendorText: {
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  footer: {
+    height: 60,
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#DDDDDD",
+  },
+  footerButton: {
+    alignItems: "center",
+  },
+  footerButtonText: {
+    fontSize: 12,
+    color: "#333333",
+    marginTop: 5,
   },
 });
 

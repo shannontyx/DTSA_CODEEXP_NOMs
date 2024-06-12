@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { doc, updateDoc, getFirestore, getDocs, where, query, collection } from 'firebase/firestore';
 import { useAuth } from '../components/authContext';
@@ -18,6 +18,11 @@ const EditProfile: React.FC = () => {
     const [editMode, setEditMode] = useState(false);
 
     const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
     const db = getFirestore();
 
     useEffect(() => {
@@ -153,7 +158,31 @@ const EditProfile: React.FC = () => {
                     <Text style={styles.signOutButtonText}>Sign Out</Text>
                 </TouchableOpacity>
             </View>
+            <View style={styles.footer}>
+            <TouchableOpacity
+          style={styles.footerButton}
+          onPress={() => navigation.navigate('Homepage')}
+        >
+          <Icon name="home" size={24} color="#2c5f2d" />
+          <Text style={styles.footerButtonText}>Home Page</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+  style={styles.footerButton}
+  onPress={() => navigation.navigate('CustViewOrders')}
+>
+  <Icon name="file" size={24} color="#2c5f2d" />
+  <Text style={styles.footerButtonText}>Orders</Text>
+</TouchableOpacity>
+        <TouchableOpacity style={styles.footerButton}>
+          <Icon name="group" size={24} color="#2c5f2d" />
+          <Text style={styles.footerButtonText}>Account</Text>
+        </TouchableOpacity>
+        
+       
+      </View>
         </View>
+
+        
     );
 };
 
@@ -161,12 +190,14 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F5F5F5',
-        padding: 20,
+        padding: 0,
     },
     backButton: {
         fontSize: 16,
         color: '#000',
         marginBottom: 20,
+        marginTop: 25,
+        marginLeft:10
     },
     profileContainer: {
         alignItems: 'center',
@@ -177,6 +208,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 0,
         right: 5,
+        marginRight:10
     },
     name: {
         fontSize: 24,
@@ -253,6 +285,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ccc',
         padding: 10,
+        marginBottom:30,
         borderRadius: 5,
         alignItems: 'center',
     },
@@ -261,6 +294,23 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    footer: {
+        height: 60,
+        backgroundColor: "#FFFFFF",
+        flexDirection: "row",
+        justifyContent: "space-around",
+        alignItems: "center",
+        borderTopWidth: 1,
+        borderTopColor: "#DDDDDD",
+      },
+      footerButton: {
+        alignItems: "center",
+      },
+      footerButtonText: {
+        fontSize: 12,
+        color: "#333333",
+        marginTop: 5,
+      },
 });
 
 export default EditProfile;

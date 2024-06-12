@@ -412,7 +412,7 @@ const ManageListing = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.footerButton}
-          onPress={() => setModalVisible(true)}
+          // onPress={() => setModalVisible(true)}
         >
           <Icon name="plus-square" size={24} color="#2c5f2d" />
           <Text style={styles.footerButtonText}>Create Listing</Text>

@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db } from '../../firebase/firebaseConfig';
-import { doCreateUserWithEmailAndPassword } from '../../firebase/auth'
+import { db } from '../firebase/firebaseConfig';
+import { doCreateUserWithEmailAndPassword } from '../firebase/auth'
 import { collection, addDoc } from "firebase/firestore";
-import { useAuth } from '../../components/authContext'
+import { useAuth } from '../components/authContext'
 import { getAuth } from 'firebase/auth';
 
 
@@ -30,6 +30,10 @@ interface userProfile {
 
 const registerCustomerUser: React.FC = () => {
   const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const [registering, setRegistering] = useState(false);
 
@@ -114,7 +118,7 @@ const registerCustomerUser: React.FC = () => {
         >{'< Back'}</Text>
       </TouchableOpacity>
       <Image
-          source={require('../../assets/images/nomsicon.png')}
+          source={require('../assets/images/nomsicon.png')}
           style={[styles.logo]}
         />
       <View style={styles.formContainer}>

@@ -1,14 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFirestore, collection, query, getDocs, getDoc, doc, where } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 import { getAuth } from 'firebase/auth';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const CustViewOrders = () => {
   const [orders, setOrders] = useState<any[]>([]);
+  const [location, setLocation] = useState("");
   const [activeTab, setActiveTab] = useState<'In Progress' | 'Completed'>('In Progress');
   const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   useEffect(() => {
     fetchOrders();
@@ -47,6 +53,8 @@ const CustViewOrders = () => {
       const storeDoc = await getDoc(doc(db, 'Stores', storeId));
       if (storeDoc.exists()) {
         const storeData = storeDoc.data();
+        console.log(storeData.locationString)
+        setLocation(storeData.locationString);
         return storeData.name || 'Unknown Store';
       } else {
         return 'Unknown Store';
@@ -58,7 +66,7 @@ const CustViewOrders = () => {
   };
 
   const handleViewDetails = (order: any) => {
-    navigation.navigate('OrderDetails', { order, storeName: order.storeName });
+    navigation.navigate('OrderDetails', { order, storeName: order.storeName, location: location });
   };
 
   const filteredOrders = orders.filter(order => {
@@ -69,6 +77,7 @@ const CustViewOrders = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.headText}>Orders</Text>
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'In Progress' && styles.activeTab]}
@@ -100,6 +109,27 @@ const CustViewOrders = () => {
           <Text style={styles.noOrdersText}>No orders found.</Text>
         )}
       </ScrollView>
+      <View style={styles.footer}>
+    <TouchableOpacity
+  style={styles.footerButton}
+  onPress={() => navigation.navigate('Homepage')}
+>
+  <Icon name="home" size={24} color="#2c5f2d" />
+  <Text style={styles.footerButtonText}>Home Page</Text>
+</TouchableOpacity>
+<TouchableOpacity
+  style={styles.footerButton}
+  // onPress={() => navigation.navigate('CustViewOrders')}
+>
+  <Icon name="file" size={24} color="#2c5f2d" />
+  <Text style={styles.footerButtonText}>Orders</Text>
+</TouchableOpacity>
+<TouchableOpacity style={styles.footerButton}
+onPress={() => navigation.navigate('Profile')}>
+  <Icon name="group" size={24} color="#2c5f2d" />
+  <Text style={styles.footerButtonText}>Account</Text>
+</TouchableOpacity>
+</View>
     </View>
   );
 };
@@ -108,12 +138,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
-    padding:20, 
+    padding:0, 
   },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 10,
+  },
+  headText: {
+    fontSize: 20,
+    padding: 10,
+    marginTop: 25,
+    textAlign: 'center',
   },
   tab: {
     flex: 1,
@@ -167,6 +203,23 @@ const styles = StyleSheet.create({
   noOrdersText: {
     textAlign: 'center',
     marginTop: 20,
+  },
+  footer: {
+    height: 60,
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#DDDDDD",
+  },
+  footerButton: {
+    alignItems: "center",
+  },
+  footerButtonText: {
+    fontSize: 12,
+    color: "#333333",
+    marginTop: 5,
   },
 });
 

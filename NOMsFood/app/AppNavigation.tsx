@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from './(tabs)/loginScreen';
+import LoginScreen from './loginScreen';
 import AllStores from './AllStores';
 import Western from './Western';
 import CartScreen from './CartScreen'; // Import the CartScreen
@@ -14,7 +14,9 @@ import StoreDetailsPage from './StoreDetailsPage';
 import ManageListing from './ManageListing';
 import StoresCategories from './StoresCategories';
 import CustViewOrders from './CustViewOrders';
-//import HomeScreen from './(tabs)/index';
+import HomeScreen from './index';
+import HomePage from './Homepage'
+import VendorHomepage from './(tabs)/VendorHomepage';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,7 +24,9 @@ const AppNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
-        {/* <Stack.Screen name="Home" component={HomeScreen} /> */}
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="HomePage" component={HomePage} />
+        <Stack.Screen name="VendorHomePage" component={VendorHomepage} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="AllStores" component={AllStores} />
         <Stack.Screen name="Western" component={Western} />

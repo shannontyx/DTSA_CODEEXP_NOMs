@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, ScrollView, Button, Image } from 'react-native'
 import { RouteProp, useRoute } from '@react-navigation/native';
 
 type OrderDetailsProps = {
-  route: RouteProp<{ params: { order: any, storeName: string } }, 'params'>;
+  route: RouteProp<{ params: { order: any, storeName: string, location: string } }, 'params'>;
 };
 
 const OrderDetails = () => {
   const route = useRoute<OrderDetailsProps>();
-  const { order, storeName } = route.params;
+  const { order, storeName, location } = route.params;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -21,7 +21,7 @@ const OrderDetails = () => {
         <Text style={styles.storeName}>From {storeName}</Text>
         {order.orderItems.map((item, index) => (
           <View key={index} style={styles.itemRow}>
-            <Text style={styles.item}>{item.quantity}x {item.listingId}</Text>
+            <Text style={styles.item}>{item.quantity}x {item.listingName}</Text>
             <Text style={styles.itemPrice}>${item.price}</Text>
           </View>
         ))}
@@ -36,8 +36,9 @@ const OrderDetails = () => {
       </View>
       <View style={styles.storeCard}>
         <Text style={styles.storeName}>{storeName}</Text>
-        <Image source={{ uri: 'https://via.placeholder.com/300' }} style={styles.storeImage} />
-        <Text style={styles.storeAddress}>311 New Upper Changi Rd, Singapore 467360</Text>
+        <Image source={require('./../assets/images/storeDisplay.png')} style={styles.storeImage} />
+        {/* <Image source={{ uri: './../assets/images/storeDisplay.png' }} style={styles.storeImage} /> */}
+        <Text style={styles.storeAddress}>{location}</Text>
       </View>
       <View style={styles.buttonContainer}>
         <Button title="Received" onPress={() => alert('Order received!')} color="#10390A" />
