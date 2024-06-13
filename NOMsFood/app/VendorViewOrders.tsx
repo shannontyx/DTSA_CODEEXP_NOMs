@@ -25,9 +25,18 @@ const VendorViewOrders = () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
         // Fetch the vendor's storeId from the user's profile
-        const vendorDoc = await getDoc(doc(db, 'Users', currentUser.uid));
-        const vendorData = vendorDoc.data();
-        const storeId = vendorData?.storeId;
+        const q2 = query(collection(db, 'Stores'), where('userId', '==', currentUser.uid));
+        const ordersSnapshot = await getDocs(q2);
+        const vendorDoc = await getDoc(doc(db, 'Stores', currentUser.uid));
+        var storeId = "";
+        const vendorData = ordersSnapshot.docs.map((doc) => {
+          // const orderData = doc.data();
+          // return { id: doc.id, ...orderData };
+          storeId = doc.id;
+        });
+        // const vendorData = vendorDoc.data();
+        // const storeId = vendorDoc.id;
+        console.log(storeId)
 
         if (storeId) {
           const ordersCollection = collection(db, 'Order');
