@@ -78,7 +78,7 @@ const OrderDetails = () => {
         <Text style={styles.title}>Order Summary</Text>
         <Text style={styles.orderId}>Order ID: #{order.orderId.slice(-4)}</Text>
         <Text style={styles.storeName}>From {storeName}</Text>
-        {order.orderItems.map((item, index) => (
+        {order.orderItems.cart.map((item, index) => (
           <View key={index} style={styles.itemRow}>
             <Text style={styles.item}>{item.quantity}x {item.listingName}</Text>
             <Text style={styles.itemPrice}>${item.price}</Text>
