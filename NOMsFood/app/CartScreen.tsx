@@ -7,7 +7,7 @@ import { doc, getDoc } from 'firebase/firestore';
 
 const CartScreen = () => {
   const route = useRoute();
-  const { orderedStoreId } = route.params as { storeId: string };
+  const { orderedStoreId, isGreen } = route.params as { storeId: string, isGreen: boolean };
   const navigation = useNavigation();
   const [cartItems, setCartItems] = useState([]);
   const [store, setStore] = useState<Store | null>(null);
@@ -40,6 +40,7 @@ const CartScreen = () => {
       if (storeSnapshot.exists()) {
         const storeData = storeSnapshot.data() as Store;
         setStore({ storeId: storeSnapshot.id, ...storeData });
+        console.log(storeData);
       } else {
         console.log('No such store!');
       }
@@ -120,12 +121,14 @@ const CartScreen = () => {
         ))}
       </View>
       <View style={styles.card}>
+      {isGreen ? (
         <View style={styles.checkboxContainer}>
           <TouchableOpacity onPress={handleBringOwnContainerToggle} style={styles.checkbox}>
             {bringOwnContainer && <View style={styles.checkedBox} />}
           </TouchableOpacity>
           <Text style={styles.checkboxLabel}>Bring your own container</Text>
         </View>
+      ) : null}
         <View style={styles.summaryContainer}>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryText}>Subtotal</Text>
