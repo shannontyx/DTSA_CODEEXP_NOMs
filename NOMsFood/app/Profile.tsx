@@ -13,6 +13,7 @@ const EditProfile: React.FC = () => {
         name: '',
         username: '',
         contact: '',
+        type: ''
     });
     const authContext = useAuth();
     const { userLoggedIn, currentUserEmail } = authContext || {};
@@ -161,7 +162,40 @@ const EditProfile: React.FC = () => {
                     <Text style={styles.signOutButtonText}>Sign Out</Text>
                 </TouchableOpacity>
             </View>
-            <View style={styles.footer}>
+
+            {formData.type === "Customer" ? (
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.footerButton}
+            onPress={() => navigation.navigate('Homepage')}
+          >
+            <Icon name="home" size={24} color="#2c5f2d" />
+            <Text style={styles.footerButtonText}>Home Page</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.footerButton}
+            onPress={() => navigation.navigate('CustViewOrders')}
+          >
+            <Icon name="file" size={24} color="#2c5f2d" />
+            <Text style={styles.footerButtonText}>Orders</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.footerButton}>
+            <Icon name="group" size={24} color="#2c5f2d" />
+            <Text style={styles.footerButtonText}>Account</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.footerButton}
+            onPress={() => navigation.navigate('VendorHomepage')}
+          >
+            <Icon name="home" size={24} color="#2c5f2d" />
+            <Text style={styles.footerButtonText}>Home Page</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+            {/* <View style={styles.footer}>
             <TouchableOpacity
           style={styles.footerButton}
           onPress={() => navigation.navigate('Homepage')}
@@ -182,7 +216,7 @@ const EditProfile: React.FC = () => {
         </TouchableOpacity>
         
        
-      </View>
+      </View> */}
         </View>
 
         
