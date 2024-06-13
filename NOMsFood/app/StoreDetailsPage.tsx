@@ -45,7 +45,6 @@ const StoreDetailsPage: React.FC = () => {
   useEffect(() => {
     const fetchStoreDetails = async () => {
       try {
-        await updateStoreStatus();
         const storeDoc = doc(db, 'Stores', storeId);
         const storeSnapshot = await getDoc(storeDoc);
 
@@ -136,42 +135,7 @@ const StoreDetailsPage: React.FC = () => {
     navigation.navigate('CartScreen', { orderedStoreId: storeId, isGreen: store.isGreen });
   };
 
-  const updateStoreStatus = async () => {
-    const currentTime = new Date();
-    const storesCollection = collection(db, 'Store');
-    const storesSnapshot = await getDocs(storesCollection);
-
-    storesSnapshot.forEach(async (storeDoc) => {
-        const storeData = storeDoc.data();
-        const openingHours = storeData.opening;
-        const [openHour, openMinute] = openingHours.split(':').map(Number);
-        const closingHours = storeData.closing;
-        const [closeHour, closeMinute] = closingHours.split(':').map(Number);
-
-        // Check if the store has opening hours defined
-        if (openingHours) {
-            const openTime = new Date(currentTime);
-            openTime.setHours(openHour, openMinute, 0, 0);
-            const closeTime = new Date(currentTime);
-            closeTime.setHours(closeHour, closeMinute, 0, 0);
-
-            // Check if the current time is between open and close hours
-            if (currentTime >= openTime && currentTime <= closeTime) {
-                // Store is open
-                await updateDoc(doc(db, 'Store', storeDoc.id), { isOpen: true });
-                //console.log(storeData.name + " Open pls");
-            } else {
-                // Store is closed
-                await updateDoc(doc(db, 'Store', storeDoc.id), { isOpen: false });
-                //console.log(storeData.name + " Close pls");
-            }
-        } else {
-            // If opening hours are not defined, consider the store closed
-            await updateDoc(doc(db, 'Store', storeDoc.id), { isOpen: false });
-            //console.log(storeData.name + " Dont Exist pls");
-        }
-    });
-};
+  
 
   return (
     <View style={styles.container}>
