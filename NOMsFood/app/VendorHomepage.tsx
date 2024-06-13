@@ -37,7 +37,7 @@ const VendorHomepage = () => {
           <Icon name="star" size={40} color="#2c5f2d" />
           <Text style={styles.buttonText}>View Reviews</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('VendorViewOrders')}>
           <Icon name="shopping-cart" size={40} color="#2c5f2d" />
           <Text style={styles.buttonText}>View Orders</Text>
         </TouchableOpacity>

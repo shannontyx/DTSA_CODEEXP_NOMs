@@ -21,11 +21,15 @@ const HomeScreen = () => {
     { name: 'Halal', icon: require('../assets/icons/halal.png') },
   ];
   const greenVendors = [
-    { name: 'Stuffd', image: require('../assets/images/stuffd.jpg') },
+    { name: 'Stuffd', image: require('../assets/images/stuffd.png') },
     { name: 'EggTopia', image: require('../assets/images/eggtopia.png') },
     { name: 'Duck', image: require('../assets/images/wafflesia.png') },
   ];
-  const pastOrders = [];
+  const pastOrders = [
+    { name: 'SaladStop!', image: require('../assets/images/saladstop.png') },
+    { name: 'Duck Day', image: require('../assets/images/duck.png') },
+    { name: 'Five Fingers', image: require('../assets/images/westagain.png') },
+  ];
 
   const handleSearchBarPress = () => {
     navigation.navigate('AllStores', { autoFocus: true });
@@ -65,7 +69,7 @@ const HomeScreen = () => {
         <Text style={styles.sectionSubtitle}>
           Order from vendors that support sustainable packaging!
         </Text>
-        <Text style={styles.sectionSubtitle}>
+        <Text style={styles.sectionSubtitle2}>
           Bring your own container for Cheaper Prices!
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -215,6 +219,11 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 14,
     color: '#666',
+  },
+  sectionSubtitle2: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'green',
   },
   vendorContainer: {
     alignItems: 'center',

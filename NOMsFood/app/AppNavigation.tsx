@@ -20,6 +20,9 @@ import HomeScreen from './index';
 import HomePage from './Homepage'
 import VendorHomepage from './VendorHomepage';
 import ChatScreen from './ChatScreen';
+import OrderConfirmed from './orderConfirmed';
+import OrderDetails from './OrderDetails';
+import VendorViewOrders from './VendorViewOrders';
 
 
 
@@ -70,6 +73,9 @@ const AppNavigator = () => {
         <Stack.Screen name="ManageListing" component={ManageListing} />
         <Stack.Screen name="CustViewOrders" component={CustViewOrders} />
         <Stack.Screen name="ChatScreen" component={ChatScreen} />
+        <Stack.Screen name="OrderConfirmed" component={OrderConfirmed} />
+        <Stack.Screen name="OrderDetails" component={OrderDetails} />
+        <Stack.Screen name="VendorViewOrders" component={VendorViewOrders} />
       </Stack.Navigator>
     </NavigationContainer>
     
