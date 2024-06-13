@@ -117,12 +117,12 @@ const VendorViewOrders = () => {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.footerButton}
-          onPress={() => navigation.navigate('Homepage')}
+          onPress={() => navigation.navigate('VendorHomepage')}
         >
           <Icon name="home" size={24} color="#2c5f2d" />
           <Text style={styles.footerButtonText}>Home Page</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton}>
+        {/* <TouchableOpacity style={styles.footerButton}>
           <Icon name="file" size={24} color="#2c5f2d" />
           <Text style={styles.footerButtonText}>Orders</Text>
         </TouchableOpacity>
@@ -132,7 +132,7 @@ const VendorViewOrders = () => {
         >
           <Icon name="group" size={24} color="#2c5f2d" />
           <Text style={styles.footerButtonText}>Account</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
