@@ -59,12 +59,13 @@ const EditStore = () => {
 
   const handlePlaceSelect = (data, details) => {
     const address = details.formatted_address;
+    const { lat, lng } = details.geometry.location;
     setStore(prevStore => ({
       ...prevStore,
-      locationG: { lat: details.geometry.location.lat, lng: details.geometry.location.lng },
+      locationG: { lat, lng },
       location: address,
     }));
-    setMarker({ lat: details.geometry.location.lat, lng: details.geometry.location.lng });
+    setMarker({ lat, lng });
   };
 
   const handleSave = async () => {
@@ -189,7 +190,9 @@ const EditStore = () => {
           fetchDetails={true}
           styles={{
             textInputContainer: {
-              width: '100%',
+              width: '90%',
+              alignContent: 'center',
+              marginLeft: 20,
             },
             textInput: {
               height: 50,
@@ -282,21 +285,26 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
   },
   headerText: {
     fontSize: 25,
     fontWeight: 'bold',
     color: '#10390A',
+    marginLeft: 20,
     marginBottom: 15,
+    marginTop: 15,
   },
   input: {
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
     marginBottom: 15,
+    marginLeft: 20,
+    marginRight: 20,
     paddingHorizontal: 10,
     borderRadius: 5,
+    backgroundColor: '#fff',
   },
   greenContainer: {
     flexDirection: 'row',
@@ -313,6 +321,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#555',
     marginRight: 10,
+    marginLeft: 20,
   },
   label2: {
     fontSize: 16,
@@ -325,17 +334,20 @@ const styles = StyleSheet.create({
     color: '#10390A',
     textDecorationLine: 'underline',
     marginBottom: 15,
+    marginLeft: 20,
   },
   moreInfoText2: {
     fontSize: 16,
     color: '#10390A',
     marginBottom: 15,
+    marginLeft: 20,
   },
   moreInfoContainer: {
     marginBottom: 15,
     backgroundColor: '#d1ffbd',
     padding: 10,
     borderRadius: 5,
+    marginLeft: 20,
   },
   buttonContainer: {
     marginTop: 20,
@@ -348,9 +360,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   map: {
-    width: '100%',
+    width: '90%',
     height: 300,
     marginBottom: 15,
+    marginLeft: 20,
+    marginRight: 30,
   },
   icon: {
     marginRight: 5,

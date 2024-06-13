@@ -1,14 +1,73 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Button, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Button, Image, ActivityIndicator, Alert } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
+import { collection, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase/firebaseConfig';
+import MapView, { Marker } from 'react-native-maps';
 
 type OrderDetailsProps = {
-  route: RouteProp<{ params: { order: any, storeName: string, location: string } }, 'params'>;
+  route: RouteProp<{ params: { order: any, storeName: string, storeId: string } }, 'params'>;
 };
 
 const OrderDetails = () => {
   const route = useRoute<OrderDetailsProps>();
-  const { order, storeName, location } = route.params;
+  const { order, storeName, storeId } = route.params;
+  const [storeDetails, setStoreDetails] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStoreDetails = async () => {
+      try {
+        if (!storeId) {
+          console.error("storeId is undefined or empty.");
+          setLoading(false);
+          return;
+        }
+        const storeDocRef = doc(db, 'Stores', storeId);
+        const storeDoc = await getDoc(storeDocRef);
+
+        if (storeDoc.exists()) {
+          const storeData = storeDoc.data();
+          setStoreDetails(storeData);
+        } else {
+          console.error("Store not found.");
+        }
+      } catch (error) {
+        console.error("Error fetching store details: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStoreDetails();
+  }, [storeId]);
+
+  const handleReceived = async () => {
+    try {
+      const orderDocRef = doc(db, 'Order', order.orderId);
+      await updateDoc(orderDocRef, { orderStatus: 'Completed' });
+      Alert.alert('Order has been collected!');
+    } catch (error) {
+      console.error("Error updating order status: ", error);
+      Alert.alert('Error', 'There was an error updating the order status');
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#10390A" />
+      </View>
+    );
+  }
+
+  if (!storeDetails) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>Store details not found.</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -19,7 +78,7 @@ const OrderDetails = () => {
         <Text style={styles.title}>Order Summary</Text>
         <Text style={styles.orderId}>Order ID: #{order.orderId.slice(-4)}</Text>
         <Text style={styles.storeName}>From {storeName}</Text>
-        {order.orderItems.map((item, index) => (
+        {order.orderItems.cart.map((item, index) => (
           <View key={index} style={styles.itemRow}>
             <Text style={styles.item}>{item.quantity}x {item.listingName}</Text>
             <Text style={styles.itemPrice}>${item.price}</Text>
@@ -36,13 +95,26 @@ const OrderDetails = () => {
       </View>
       <View style={styles.storeCard}>
         <Text style={styles.storeName}>{storeName}</Text>
-        <Image source={require('./../assets/images/storeDisplay.png')} style={styles.storeImage} />
-        {/* <Image source={{ uri: './../assets/images/storeDisplay.png' }} style={styles.storeImage} /> */}
-        <Text style={styles.storeAddress}>{location}</Text>
+        <Text style={styles.storeAddress}>{storeDetails.location}</Text>
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: storeDetails.locationG.lat,
+            longitude: storeDetails.locationG.lng,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+          region={{
+            latitude: storeDetails.locationG.lat,
+            longitude: storeDetails.locationG.lng,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        >
+          <Marker coordinate={{ latitude: storeDetails.locationG.lat, longitude: storeDetails.locationG.lng }} />
+        </MapView>
       </View>
-      <View style={styles.buttonContainer}>
-        <Button title="Received" onPress={() => alert('Order received!')} color="#10390A" />
-      </View>
+      
     </ScrollView>
   );
 };
@@ -128,10 +200,27 @@ const styles = StyleSheet.create({
   storeAddress: {
     fontSize: 16,
     textAlign: 'center',
+    marginBottom: 10,
+  },
+  map: {
+    width: '100%',
+    height: 300,
+    borderRadius: 10,
+    marginBottom: 10,
   },
   buttonContainer: {
     alignItems: 'center',
     marginTop: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

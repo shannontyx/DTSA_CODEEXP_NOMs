@@ -51,6 +51,7 @@ const StoreDetailsPage: React.FC = () => {
         if (storeSnapshot.exists()) {
           const storeData = storeSnapshot.data() as Store;
           setStore({ storeId: storeSnapshot.id, ...storeData });
+          console.log(storeData);
         } else {
           console.log('No such store!');
         }
@@ -131,8 +132,10 @@ const StoreDetailsPage: React.FC = () => {
   };
 
   const handleCheckout = () => {
-    navigation.navigate('CartScreen', { orderedStoreId: storeId });
+    navigation.navigate('CartScreen', { orderedStoreId: storeId, isGreen: store.isGreen });
   };
+
+  
 
   return (
     <View style={styles.container}>
