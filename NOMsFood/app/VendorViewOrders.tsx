@@ -114,26 +114,6 @@ const VendorViewOrders = () => {
           <Text style={styles.noOrdersText}>No orders found.</Text>
         )}
       </ScrollView>
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.footerButton}
-          onPress={() => navigation.navigate('Homepage')}
-        >
-          <Icon name="home" size={24} color="#2c5f2d" />
-          <Text style={styles.footerButtonText}>Home Page</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton}>
-          <Icon name="file" size={24} color="#2c5f2d" />
-          <Text style={styles.footerButtonText}>Orders</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.footerButton}
-          onPress={() => navigation.navigate('Profile')}
-        >
-          <Icon name="group" size={24} color="#2c5f2d" />
-          <Text style={styles.footerButtonText}>Account</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
