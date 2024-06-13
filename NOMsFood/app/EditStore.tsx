@@ -257,7 +257,7 @@ const EditStore = () => {
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5', }}>
       <FlatList
         data={formData}
         renderItem={({ item }) => <View key={item.key}>{item.component}</View>}
@@ -302,6 +302,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 15,
+    backgroundColor: '#f5f5f5',
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -344,6 +345,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
   map: {
     width: '100%',
